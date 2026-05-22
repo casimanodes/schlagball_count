@@ -69,7 +69,8 @@ function makePlayers(drafts: PlayerDraft[]): Player[] {
   return drafts.map((draft, index) => ({
     id: makeId(),
     name: draft.name.trim() || `Spieler ${index + 1}`,
-    number: draft.number.trim(),
+    // Nummer automatisch nach der Reihenfolge: 1, 2, 3, ...
+    number: String(index + 1),
     points: emptyPoints(),
     hasHit: false,
   }));
@@ -220,7 +221,8 @@ export function gameReducer(state: AppState, action: GameAction): AppState {
         return state;
       }
       if (pointType === 'fangpunkt' && !game.fangAvailable) return state;
-      // 'abwurfpunkt' ist jederzeit erlaubt.
+      // Abwurfpunkt erst möglich, sobald im Spiel der erste Schlag erfolgt ist.
+      if (pointType === 'abwurfpunkt' && game.history.length === 0) return state;
 
       const causedRoleSwitch = pointType === ROLE_SWITCH_POINT_TYPE;
 
@@ -235,13 +237,13 @@ export function gameReducer(state: AppState, action: GameAction): AppState {
         ...captureHitState(game),
       };
 
-      // Lauf- und Weitschlagpunkt verwerten den Schlag: pro Schlag gibt es
-      // genau EINEN Punkt – danach muss der Spieler neu schlagen.
-      const resolvesHit =
-        pointType === 'laufpunkt' || pointType === 'weitschlagpunkt';
+      // Nur der LAUFPUNKT verwertet den Schlag – danach muss der Spieler
+      // neu schlagen. Ein Weitschlag schließt einen anschließenden Laufpunkt
+      // NICHT aus; der Schlag bleibt dafür offen.
+      const resolvesHit = pointType === 'laufpunkt';
 
-      // Punkt gutschreiben; bei Lauf-/Weitschlagpunkt zugleich den
-      // Schlag-Status des Spielers zurücksetzen.
+      // Punkt gutschreiben; beim Laufpunkt zugleich den Schlag-Status
+      // des Spielers zurücksetzen.
       const teamsWithPoint = {
         ...game.teams,
         [teamId]: {
@@ -272,7 +274,8 @@ export function gameReducer(state: AppState, action: GameAction): AppState {
         // wieder einen Laufpunkt erzielen kann (hasHit wurde oben gesetzt).
         if (lastHitterId === playerId) lastHitterId = null;
       } else if (pointType === 'weitschlagpunkt') {
-        // Der Schlag ist als Weitschlag verwertet – Chance verbraucht.
+        // Weitschlag erzielt: kein zweiter Weitschlag für denselben Schlag,
+        // aber der Schlag bleibt offen – ein Laufpunkt ist weiter möglich.
         lastHitterId = null;
         fangAvailable = false;
       } else if (pointType === 'fangpunkt') {

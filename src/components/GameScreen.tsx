@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import type { Dispatch } from 'react';
 import type { GameAction } from '../gameReducer';
 import type { Game, TeamId } from '../types';
+import { computeNextBatterIndex } from '../types';
 import Scoreboard from './Scoreboard';
 import TimerBar from './TimerBar';
 import TeamPanel from './TeamPanel';
@@ -75,6 +76,12 @@ export default function GameScreen({ game, dispatch }: GameScreenProps) {
               role={game.attackingTeam === id ? 'attack' : 'defense'}
               lastHitterId={game.lastHitterId}
               fangAvailable={game.fangAvailable}
+              abwurfAvailable={game.history.length > 0}
+              nextBatterIndex={computeNextBatterIndex(
+                game.history,
+                id,
+                game.teams[id].players,
+              )}
               onHit={(playerId) => dispatch({ type: 'HIT', teamId: id, playerId })}
               onScore={(playerId, pointType) =>
                 dispatch({ type: 'SCORE', teamId: id, playerId, pointType })

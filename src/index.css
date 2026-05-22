@@ -93,6 +93,18 @@ input:focus-visible {
   box-shadow: 0 0 60px rgba(0, 0, 0, 0.55);
 }
 
+/* --- Warnbanner: Spielstand konnte nicht gespeichert werden -------------- */
+.save-warning {
+  flex-shrink: 0;
+  padding: 9px 14px;
+  background: var(--danger);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  text-align: center;
+  line-height: 1.35;
+}
+
 /* ===========================================================================
    Setup-Screen
    =========================================================================== */
@@ -1557,6 +1569,28 @@ input:focus-visible {
 
 .dp-type.defense strong {
   color: var(--defense-strong);
+}
+
+/* ===========================================================================
+   Nächster Schläger (feste Schlagreihenfolge)
+   =========================================================================== */
+.player-card.next-batter {
+  box-shadow: 0 0 0 3px var(--win);
+}
+
+.next-badge {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 8px;
+  background: var(--win);
+  color: #fff;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
 }
 
 /* ===========================================================================

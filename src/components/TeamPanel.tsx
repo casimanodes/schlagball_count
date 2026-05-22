@@ -10,20 +10,26 @@ interface TeamPanelProps {
   lastHitterId: string | null;
   /** Ob die Verteidigung gerade eine Fangpunkt-Chance hat. */
   fangAvailable: boolean;
+  /** Ob ein Abwurfpunkt aktuell erlaubt ist (ab dem ersten Schlag im Spiel). */
+  abwurfAvailable: boolean;
+  /** Index des Spielers, der laut Reihenfolge als Nächster schlagen sollte. */
+  nextBatterIndex: number;
   onHit: (playerId: string) => void;
   onScore: (playerId: string, pointType: PointTypeId) => void;
 }
 
 /**
  * Panel einer Mannschaft. Zeigt für jeden Spieler eine Karte mit
- * zweigeteiltem Punkt-Button. Welche Hälften aktiv bzw. gesperrt sind, hängt
- * an der Rolle und am Schlag-Status (siehe PlayerCard).
+ * zweigeteiltem Punkt-Button. Im Angriff markiert ein Icon den Spieler, der
+ * laut fester Schlagreihenfolge als Nächster dran ist.
  */
 export default function TeamPanel({
   team,
   role,
   lastHitterId,
   fangAvailable,
+  abwurfAvailable,
+  nextBatterIndex,
   onHit,
   onScore,
 }: TeamPanelProps) {
@@ -43,13 +49,15 @@ export default function TeamPanel({
           <p className="panel-empty">Keine Spieler hinterlegt.</p>
         ) : (
           <div className="player-list">
-            {team.players.map((player) => (
+            {team.players.map((player, index) => (
               <PlayerCard
                 key={player.id}
                 player={player}
                 role={role}
                 lastHitterId={lastHitterId}
                 fangAvailable={fangAvailable}
+                abwurfAvailable={abwurfAvailable}
+                isNextBatter={isAttack && index === nextBatterIndex}
                 onHit={() => onHit(player.id)}
                 onScore={(pointType) => onScore(player.id, pointType)}
               />

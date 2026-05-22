@@ -66,7 +66,7 @@ npm run preview   # Produktions-Build lokal testen
 - **Rollen** – automatischer Rollenwechsel beim Abwurfpunkt.
 - **Timer** – einstellbar; läuft er ab, wird das Spiel automatisch beendet.
 - **Spielübersicht & Detail** – alle beendeten Spiele mit Ergebnis und Punkten
-  je Spieler; alle Spiele lassen sich als Datei exportieren.
+  je Spieler; als Datei exportierbar (inklusive Verlauf).
 
 ---
 
@@ -127,10 +127,10 @@ Bevor ein Angriffsspieler laufen darf, muss er den Ball schlagen:
   geschlagen hat.
 - Danach wird aus „Geschlagen" die Punktart **„Weitschlag"**, und die rechte
   Hälfte **„Laufpunkt"** wird für diesen Spieler freigeschaltet.
-- **Pro Schlag genau ein Punkt:** Sobald der Spieler einen Lauf- oder
-  Weitschlagpunkt erzielt hat, ist der Schlag verbraucht – die Hälften werden
-  wieder gesperrt und es erscheint erneut „Geschlagen". Er muss neu schlagen,
-  bevor er wieder punkten kann.
+- Ein **Weitschlag** verbraucht den Schlag **nicht** – derselbe Spieler kann
+  danach noch einen Laufpunkt erzielen.
+- Erst der **Laufpunkt** verwertet den Schlag: danach erscheint wieder
+  „Geschlagen" und der Spieler muss neu schlagen.
 - Ein Spieler ohne offenen Schlag kann **keinen Laufpunkt** erzielen.
 
 ### Wann welcher Punkt möglich ist
@@ -145,10 +145,9 @@ Bevor ein Angriffsspieler laufen darf, muss er den Ball schlagen:
   erneut geschlagen wird.
 - **Abwurfpunkt:** jederzeit für die Verteidigung.
 
-Ein Schlag ist also genau **einmal verwertbar**: Der Schläger erzielt entweder
-einen Laufpunkt **oder** einen Weitschlag – danach ist sein Schlag verbraucht und
-er muss neu schlagen. Erzielt die Verteidigung stattdessen einen Fangpunkt, ist
-die Fang-Chance dieses Schlags ebenfalls verbraucht.
+Pro Schlag sind höchstens **ein Weitschlag und ein Laufpunkt** möglich. Erst
+der Laufpunkt beendet den Schlag – danach muss neu geschlagen werden. Erzielt
+die Verteidigung einen Fangpunkt, ist die Fang-Chance dieses Schlags verbraucht.
 
 ### Automatischer Rollenwechsel
 

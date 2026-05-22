@@ -3,13 +3,14 @@
 //
 // Punktelogik (vereinfachte Schlagball-Regeln):
 //   - Ein Angriffsspieler muss erst den Ball SCHLAGEN ("geschlagen"), bevor er
-//     einen Lauf- oder Weitschlagpunkt erzielen kann. Pro Schlag gibt es
-//     genau EINEN Punkt – danach muss er erneut schlagen.
-//   - Der WEITSCHLAGPUNKT kann nur unmittelbar vom Spieler erzielt werden, der
-//     gerade geschlagen hat (dem letzten Schläger).
+//     einen Lauf- oder Weitschlagpunkt erzielen kann.
+//   - Der WEITSCHLAGPUNKT kann nur unmittelbar vom letzten Schläger erzielt
+//     werden und verbraucht den Schlag NICHT (ein Laufpunkt bleibt möglich).
+//   - Der LAUFPUNKT verwertet den Schlag – danach muss neu geschlagen werden.
 //   - Die Verteidigung kann einen FANGPUNKT nur erzielen, wenn der Gegner
 //     geschlagen hat – und zwar genau einmal je Schlag.
-//   - Der ABWURFPUNKT ist jederzeit möglich und löst den Rollenwechsel aus.
+//   - Der ABWURFPUNKT löst den Rollenwechsel aus; er ist erst ab dem ersten
+//     Schlag im Spiel möglich.
 // ===========================================================================
 
 /** Rolle eines Teams zu einem bestimmten Zeitpunkt. */
@@ -146,10 +147,10 @@ export interface AppState {
   selectedGameId: string | null;
 }
 
-/** Eingabedaten eines Spielers aus dem Setup (vor Spielbeginn). */
+/** Eingabedaten eines Spielers aus dem Setup (vor Spielbeginn).
+ *  Die Trikotnummer wird automatisch nach der Reihenfolge vergeben. */
 export interface PlayerDraft {
   name: string;
-  number: string;
 }
 
 /** Gesamtpunktzahl eines Spielers = Summe seiner vier Punktarten. */
@@ -176,6 +177,26 @@ export function teamPointTotals(team: TeamState): Record<PointTypeId, number> {
     }
   }
   return totals;
+}
+
+/** Index des Spielers, der laut fester Reihenfolge als Nächster schlagen
+ *  sollte. Abgeleitet aus dem Verlauf: letzter Schlag des Teams + 1
+ *  (zyklisch). Hat das Team noch nicht geschlagen, ist der erste Spieler dran.
+ *  Liefert -1, wenn das Team keine Spieler hat. */
+export function computeNextBatterIndex(
+  history: GameEvent[],
+  teamId: TeamId,
+  players: Player[],
+): number {
+  if (players.length === 0) return -1;
+  for (let i = history.length - 1; i >= 0; i--) {
+    const ev = history[i];
+    if (ev.kind === 'hit' && ev.teamId === teamId) {
+      const idx = players.findIndex((p) => p.id === ev.playerId);
+      return idx >= 0 ? (idx + 1) % players.length : 0;
+    }
+  }
+  return 0;
 }
 
 /** Sekunden als MM:SS formatieren (Minuten und Sekunden zweistellig). */

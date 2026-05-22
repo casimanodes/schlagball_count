@@ -1,7 +1,7 @@
 import type { Dispatch } from 'react';
 import type { GameAction } from '../gameReducer';
 import type { CompletedGame } from '../types';
-import { teamTotal } from '../types';
+import { POINT_TYPE_BY_ID, teamTotal } from '../types';
 
 interface OverviewScreenProps {
   games: CompletedGame[];
@@ -16,15 +16,40 @@ function pointsClass(winner: Winner, team: 'A' | 'B'): string {
 }
 
 /**
- * Lädt alle beendeten Spiele als JSON-Datei herunter, damit der Schiedsrichter
- * die Ergebnisse dauerhaft sichern kann.
+ * Lädt alle beendeten Spiele als lesbare JSON-Datei herunter – inklusive des
+ * Verlaufs (Reihenfolge aller Punkte und Schläge) je Spiel.
  */
 function downloadGames(games: CompletedGame[]): void {
+  const spiele = games.map((game, index) => {
+    const totalA = teamTotal(game.teams.A);
+    const totalB = teamTotal(game.teams.B);
+    const verlauf = game.history.map((ev, i) => {
+      const team = game.teams[ev.teamId];
+      const player = team.players.find((p) => p.id === ev.playerId);
+      return {
+        nr: i + 1,
+        zeit: new Date(ev.timestamp).toLocaleTimeString('de-DE'),
+        team: team.name,
+        spieler: player ? `#${player.number} ${player.name}` : 'Unbekannt',
+        aktion: ev.pointType
+          ? POINT_TYPE_BY_ID[ev.pointType].label
+          : 'Geschlagen',
+      };
+    });
+    return {
+      nummer: games.length - index,
+      beendet: new Date(game.finishedAt).toLocaleString('de-DE'),
+      ergebnis: `${game.teams.A.name} ${totalA} : ${totalB} ${game.teams.B.name}`,
+      teams: game.teams,
+      verlauf,
+    };
+  });
+
   const payload = {
     app: 'Schlagball-Zähler',
     exportiertAm: new Date().toISOString(),
     anzahlSpiele: games.length,
-    spiele: games,
+    spiele,
   };
   const blob = new Blob([JSON.stringify(payload, null, 2)], {
     type: 'application/json',

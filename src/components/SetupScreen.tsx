@@ -40,11 +40,10 @@ export default function SetupScreen({
   // gepunktet werden.
   const canStart = playersA.length > 0 && playersB.length > 0;
 
-  function addPlayer(team: TeamId, name: string, number: string) {
+  function addPlayer(team: TeamId, name: string) {
     const player: DraftPlayer = {
       id: makeDraftId(),
       name: name.trim(),
-      number: number.trim(),
     };
     if (team === 'A') setPlayersA((ps) => [...ps, player]);
     else setPlayersB((ps) => [...ps, player]);
@@ -69,8 +68,8 @@ export default function SetupScreen({
       teamBName,
       attackingTeam,
       timerMinutes,
-      playersA: playersA.map((p) => ({ name: p.name, number: p.number })),
-      playersB: playersB.map((p) => ({ name: p.name, number: p.number })),
+      playersA: playersA.map((p) => ({ name: p.name })),
+      playersB: playersB.map((p) => ({ name: p.name })),
     });
   }
 
@@ -106,7 +105,7 @@ export default function SetupScreen({
         <PlayerEditor
           players={playersA}
           max={MAX_PLAYERS_PER_TEAM}
-          onAdd={(name, number) => addPlayer('A', name, number)}
+          onAdd={(name) => addPlayer('A', name)}
           onRemove={(id) => removePlayer('A', id)}
         />
       </div>
@@ -126,7 +125,7 @@ export default function SetupScreen({
         <PlayerEditor
           players={playersB}
           max={MAX_PLAYERS_PER_TEAM}
-          onAdd={(name, number) => addPlayer('B', name, number)}
+          onAdd={(name) => addPlayer('B', name)}
           onRemove={(id) => removePlayer('B', id)}
         />
       </div>
