@@ -1,0 +1,14 @@
+# Abhängigkeiten & Build-Ausgaben
+node_modules
+dist
+dist-ssr
+*.tsbuildinfo
+
+# Logs & lokale Dateien
+*.local
+*.log
+.DS_Store
+
+# Lokale Tooling- und Referenzdateien (nicht Teil der App)
+.claude/
+zählapp_webseite.png

@@ -1,0 +1,1572 @@
+/* ===========================================================================
+   Schlagball-Zählapp – Styling
+   Mobil-optimiert (Smartphone-Portrait), klares Farbkonzept:
+     - Angriff      = orange
+     - Verteidigung = blau
+     - Hintergrund  = neutrales Hellgrau
+   =========================================================================== */
+
+:root {
+  --bg: #eef0f4;
+  --surface: #ffffff;
+  --surface-2: #f4f5f8;
+  --text: #1f2733;
+  --text-muted: #6b7280;
+  --border: #dce0e7;
+
+  /* Angriff */
+  --attack: #f97316;
+  --attack-strong: #ea580c;
+  --attack-soft: #fff3e8;
+
+  /* Verteidigung */
+  --defense: #3b82f6;
+  --defense-strong: #2563eb;
+  --defense-soft: #ebf2ff;
+
+  --primary: #1f2733;
+  --danger: #dc2626;
+  --win: #15803d;
+
+  --radius: 18px;
+  --radius-sm: 12px;
+  --shadow: 0 6px 20px rgba(15, 23, 42, 0.09);
+  --shadow-sm: 0 2px 8px rgba(15, 23, 42, 0.08);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica,
+    Arial, sans-serif;
+  background: #15171e;
+  color: var(--text);
+  -webkit-tap-highlight-color: transparent;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+#root {
+  height: 100%;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  background: none;
+  color: inherit;
+  touch-action: manipulation;
+  user-select: none;
+}
+
+button:focus-visible {
+  outline: 3px solid #6366f1;
+  outline-offset: 2px;
+}
+
+input:focus-visible {
+  outline: none;
+}
+
+/* --- App-Hülle: zentriert, Smartphone-Breite ------------------------------ */
+.app {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 480px;
+  height: 100vh;
+  height: 100dvh;
+  margin: 0 auto;
+  background: var(--bg);
+  overflow: hidden;
+  box-shadow: 0 0 60px rgba(0, 0, 0, 0.55);
+}
+
+/* ===========================================================================
+   Setup-Screen
+   =========================================================================== */
+.setup {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 32px 20px 24px;
+  overflow-y: auto;
+}
+
+.setup-header {
+  text-align: center;
+}
+
+.setup-header h1 {
+  font-size: 36px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.subtitle {
+  margin-top: 4px;
+  color: var(--text-muted);
+  font-size: 15px;
+}
+
+/* --- Kurzerklärung auf dem Startbildschirm ------------------------------- */
+.setup-intro {
+  padding: 16px 18px;
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.setup-intro h2 {
+  margin-bottom: 9px;
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.setup-intro ul {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.setup-intro li {
+  position: relative;
+  padding-left: 16px;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--text-muted);
+}
+
+.setup-intro li::before {
+  content: '';
+  position: absolute;
+  left: 1px;
+  top: 7px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--attack);
+}
+
+.setup-intro strong {
+  color: var(--text);
+  font-weight: 700;
+}
+
+.setup-card {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 22px 20px;
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.field-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.field-hint {
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+.text-input {
+  font-size: 17px;
+  padding: 14px;
+  border: 2px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  color: var(--text);
+  transition: border-color 0.15s;
+}
+
+.text-input:focus {
+  border-color: var(--primary);
+  background: var(--surface);
+}
+
+.role-choice {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.role-choice-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  padding: 16px 8px;
+  border: 2px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  transition: border-color 0.15s, background 0.15s, transform 0.07s;
+}
+
+.role-choice-btn:active {
+  transform: scale(0.98);
+}
+
+.rc-name {
+  font-size: 16px;
+  font-weight: 700;
+  text-align: center;
+  word-break: break-word;
+}
+
+.rc-role {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.07em;
+}
+
+.role-choice-btn.attack {
+  border-color: var(--attack);
+  background: var(--attack-soft);
+}
+
+.role-choice-btn.attack .rc-role {
+  color: var(--attack-strong);
+}
+
+.role-choice-btn.defense {
+  border-color: var(--defense);
+  background: var(--defense-soft);
+}
+
+.role-choice-btn.defense .rc-role {
+  color: var(--defense-strong);
+}
+
+/* --- Stepper (Spieldauer) ------------------------------------------------- */
+.stepper {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.stepper-btn {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  border: 2px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  font-size: 26px;
+  font-weight: 800;
+  transition: transform 0.07s;
+}
+
+.stepper-btn:active {
+  transform: scale(0.95);
+}
+
+.stepper-btn:disabled {
+  opacity: 0.35;
+}
+
+.stepper-value {
+  flex: 1;
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 5px;
+  font-size: 30px;
+  font-weight: 800;
+}
+
+.stepper-unit {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+/* --- Primär-Button & Text-Link ------------------------------------------- */
+.primary-btn {
+  display: block;
+  width: 100%;
+  padding: 18px;
+  background: var(--primary);
+  color: #fff;
+  font-size: 18px;
+  font-weight: 700;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  transition: transform 0.08s, filter 0.12s;
+}
+
+.primary-btn:active {
+  transform: scale(0.98);
+  filter: brightness(1.15);
+}
+
+.link-btn {
+  align-self: center;
+  padding: 10px 14px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-decoration: underline;
+}
+
+.secondary-btn {
+  display: block;
+  width: 100%;
+  padding: 14px;
+  background: var(--surface-2);
+  color: var(--text);
+  font-size: 15px;
+  font-weight: 700;
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  transition: transform 0.08s;
+}
+
+.secondary-btn:active {
+  transform: scale(0.98);
+}
+
+/* ===========================================================================
+   Spiel-Screen Grundlayout
+   =========================================================================== */
+.game {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+/* --- Scoreboard (Kopf) ---------------------------------------------------- */
+.scoreboard {
+  flex-shrink: 0;
+  display: flex;
+  align-items: stretch;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+
+.sb-team {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 9px 6px 10px;
+  min-width: 0;
+}
+
+.sb-name {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.sb-score {
+  font-size: 38px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.sb-role {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.sb-team.attack .sb-score,
+.sb-team.attack .sb-role {
+  color: var(--attack-strong);
+}
+
+.sb-team.defense .sb-score,
+.sb-team.defense .sb-role {
+  color: var(--defense-strong);
+}
+
+.sb-mid {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: 0 6px;
+}
+
+.sb-mid-title {
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  color: var(--text-muted);
+}
+
+.sb-colon {
+  font-size: 26px;
+  font-weight: 800;
+  color: var(--text-muted);
+  line-height: 1;
+}
+
+/* --- Timer-Leiste -------------------------------------------------------- */
+.timer-bar {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 13px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+
+.timer-clock {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.05;
+}
+
+.timer-label {
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.11em;
+  color: var(--text-muted);
+}
+
+.timer-display {
+  font-size: 27px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.timer-bar.running .timer-display {
+  color: var(--win);
+}
+
+.timer-bar.low .timer-display {
+  color: var(--danger);
+  animation: timer-pulse 1s ease-in-out infinite;
+}
+
+.timer-controls {
+  display: flex;
+  gap: 8px;
+}
+
+.timer-btn {
+  padding: 10px 18px;
+  border: 2px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface-2);
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 700;
+  transition: transform 0.07s;
+}
+
+.timer-btn.primary {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #fff;
+}
+
+.timer-btn:active {
+  transform: scale(0.96);
+}
+
+.timer-btn:disabled {
+  opacity: 0.4;
+}
+
+@keyframes timer-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
+}
+
+/* --- Scrollbarer Inhalt --------------------------------------------------- */
+.game-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  display: flex;
+  flex-direction: column;
+  gap: 13px;
+  padding: 13px;
+}
+
+.panels {
+  display: flex;
+  flex-direction: column;
+  gap: 13px;
+}
+
+/* ===========================================================================
+   Team-Panel
+   =========================================================================== */
+.panel {
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.panel-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 12px 16px;
+  color: #fff;
+  transition: background 0.3s ease;
+}
+
+.panel.attack .panel-banner {
+  background: linear-gradient(135deg, #fb923c, #ea580c);
+}
+
+.panel.defense .panel-banner {
+  background: linear-gradient(135deg, #60a5fa, #2563eb);
+}
+
+.panel-team-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 19px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+.role-badge {
+  flex-shrink: 0;
+  padding: 5px 11px;
+  background: rgba(255, 255, 255, 0.26);
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.07em;
+}
+
+.panel-body {
+  padding: 14px 16px 16px;
+}
+
+/* --- Spieler-Karten (Punkte erfassen) ------------------------------------ */
+.panel-empty {
+  padding: 16px 8px;
+  text-align: center;
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+.player-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.player-card {
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+}
+
+.player-card.attack {
+  border-color: #f7c9a4;
+}
+
+.player-card.defense {
+  border-color: #b6cdf9;
+}
+
+.player-card-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 9px;
+}
+
+.player-card.attack .player-card-head {
+  background: var(--attack-soft);
+}
+
+.player-card.defense .player-card-head {
+  background: var(--defense-soft);
+}
+
+.player-number {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 26px;
+  height: 21px;
+  padding: 0 6px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 800;
+  color: #fff;
+}
+
+.player-card.attack .player-number {
+  background: var(--attack-strong);
+}
+
+.player-card.defense .player-number {
+  background: var(--defense-strong);
+}
+
+.player-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.player-total {
+  flex-shrink: 0;
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.player-card.attack .player-total {
+  color: var(--attack-strong);
+}
+
+.player-card.defense .player-total {
+  color: var(--defense-strong);
+}
+
+.player-halves {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2px;
+  background: var(--border);
+}
+
+.player-half {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  min-height: 46px;
+  padding: 6px;
+  transition: filter 0.1s, transform 0.06s;
+}
+
+.player-half:active {
+  filter: brightness(1.12);
+  transform: scale(0.97);
+}
+
+.half-label {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.half-count {
+  font-size: 19px;
+  font-weight: 800;
+}
+
+.half-switch {
+  font-size: 12px;
+  font-weight: 800;
+}
+
+/* Punktart-Farben – je Team zwei klar unterscheidbare Stufen */
+.player-half.laufpunkt {
+  background: #fdba74;
+  color: #7c2d12;
+}
+
+.player-half.weitschlagpunkt {
+  background: #ea580c;
+  color: #ffffff;
+}
+
+.player-half.fangpunkt {
+  background: #93c5fd;
+  color: #1e3a8a;
+}
+
+.player-half.abwurfpunkt {
+  background: #1d4ed8;
+  color: #ffffff;
+}
+
+/* "Geschlagen" ist eine Aktion (kein Punkt) – dunkel und klar abgesetzt */
+.player-half.hit-action {
+  background: var(--primary);
+  color: #ffffff;
+}
+
+.half-sub {
+  font-size: 10px;
+  font-weight: 700;
+  opacity: 0.8;
+}
+
+/* Gesperrte Hälfte: ausgegraut und nicht antippbar (Punkt aktuell nicht erlaubt) */
+.player-half:disabled {
+  background: #e6e8ec;
+  color: #9aa1ad;
+  cursor: not-allowed;
+}
+
+/* --- Punkte-Aufschlüsselung (ein-/ausklappbar) --------------------------- */
+.breakdown-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  margin-top: 10px;
+  padding: 8px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  color: var(--text-muted);
+  transition: background 0.12s;
+}
+
+.breakdown-toggle:active {
+  background: var(--border);
+}
+
+.breakdown {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 7px;
+  margin-top: 8px;
+}
+
+.breakdown-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  padding: 8px 11px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 9px;
+}
+
+.breakdown-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.breakdown-value {
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.breakdown-item.attack .breakdown-value {
+  color: var(--attack-strong);
+}
+
+.breakdown-item.defense .breakdown-value {
+  color: var(--defense-strong);
+}
+
+/* ===========================================================================
+   Verlauf (History)
+   =========================================================================== */
+.history {
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.history-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 14px 16px;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.chevron {
+  font-size: 13px;
+  color: var(--text-muted);
+  transition: transform 0.2s ease;
+}
+
+.chevron.open {
+  transform: rotate(180deg);
+}
+
+.history-list {
+  list-style: none;
+  max-height: 244px;
+  overflow-y: auto;
+  border-top: 1px solid var(--border);
+}
+
+.history-item {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--surface-2);
+  font-size: 13px;
+}
+
+.history-item:last-child {
+  border-bottom: none;
+}
+
+.hi-time {
+  color: var(--text-muted);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.hi-team {
+  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hi-point {
+  margin-left: auto;
+  flex-shrink: 0;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-weight: 700;
+}
+
+.history-item.attack .hi-point {
+  background: var(--attack-soft);
+  color: var(--attack-strong);
+}
+
+.history-item.defense .hi-point {
+  background: var(--defense-soft);
+  color: var(--defense-strong);
+}
+
+.hi-switch {
+  flex-shrink: 0;
+  padding: 3px 8px;
+  background: var(--primary);
+  color: #fff;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+}
+
+/* Verlauf-Eintrag für einen Schlag ("Geschlagen") – neutral statt Punktfarbe */
+.hi-action {
+  flex-shrink: 0;
+  margin-left: auto;
+  padding: 3px 10px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  border-radius: 999px;
+  font-weight: 700;
+}
+
+.history-empty {
+  padding: 18px 16px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+/* ===========================================================================
+   Kontrollleiste (Fuß)
+   =========================================================================== */
+.controls {
+  flex-shrink: 0;
+  display: flex;
+  gap: 10px;
+  padding: 12px 13px;
+  padding-bottom: calc(12px + env(safe-area-inset-bottom));
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+}
+
+.control-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 16px;
+  border: 2px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 16px;
+  font-weight: 700;
+  transition: transform 0.07s, opacity 0.12s;
+}
+
+.control-btn:active {
+  transform: scale(0.97);
+}
+
+.control-icon {
+  font-size: 18px;
+  line-height: 1;
+}
+
+.control-btn.undo {
+  background: var(--surface-2);
+  color: var(--text);
+}
+
+.control-btn.undo:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.control-btn.end {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #fff;
+}
+
+/* ===========================================================================
+   Rollenwechsel-Hinweis (Toast)
+   =========================================================================== */
+.toast {
+  position: absolute;
+  top: 132px;
+  left: 50%;
+  z-index: 50;
+  max-width: calc(100% - 28px);
+  padding: 13px 20px;
+  background: var(--primary);
+  color: #fff;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 700;
+  text-align: center;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35);
+  animation: toast-in 0.32s cubic-bezier(0.2, 0.9, 0.3, 1.2);
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -16px) scale(0.92);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0) scale(1);
+  }
+}
+
+/* ===========================================================================
+   Spielübersicht
+   =========================================================================== */
+.overview {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.overview-header {
+  flex-shrink: 0;
+  padding: 24px 20px 14px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+
+.overview-header h1 {
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.overview-sub {
+  margin-top: 2px;
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+.overview-list {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+  padding: 14px;
+}
+
+.overview-empty {
+  margin: auto;
+  padding: 40px 24px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.game-card {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 13px 15px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.07s;
+}
+
+.game-card:active {
+  transform: scale(0.99);
+}
+
+.game-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.gc-num {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.07em;
+  color: var(--text-muted);
+}
+
+.gc-reason {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.game-card-main {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 10px;
+  margin: 7px 0 6px;
+}
+
+.gc-team {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.gc-team.right {
+  text-align: right;
+}
+
+.gc-team.winner {
+  color: var(--win);
+}
+
+.gc-score {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  font-size: 28px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.gc-sep {
+  font-size: 19px;
+  color: var(--text-muted);
+}
+
+.gc-points.winner {
+  color: var(--win);
+}
+
+.gc-points.loser {
+  color: var(--text-muted);
+}
+
+.game-card-foot {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.gc-draw {
+  font-weight: 800;
+  color: var(--text);
+}
+
+.gc-chevron {
+  margin-left: auto;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.overview-actions {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  padding: 12px 14px;
+  padding-bottom: calc(12px + env(safe-area-inset-bottom));
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+}
+
+/* ===========================================================================
+   Spiel-Detailansicht
+   =========================================================================== */
+.detail {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.detail-header {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+
+.back-btn {
+  padding: 8px 13px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface-2);
+  font-size: 14px;
+  font-weight: 700;
+  transition: transform 0.07s;
+}
+
+.back-btn:active {
+  transform: scale(0.96);
+}
+
+.detail-title {
+  font-size: 17px;
+  font-weight: 800;
+}
+
+.detail-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 16px 14px;
+}
+
+.detail-result {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 14px;
+  padding: 20px 14px;
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.dr-team {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.dr-name {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.dr-score {
+  font-size: 52px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.dr-team.winner .dr-name {
+  color: var(--text);
+}
+
+.dr-team.winner .dr-score {
+  color: var(--win);
+}
+
+.dr-sep {
+  font-size: 30px;
+  font-weight: 800;
+  color: var(--text-muted);
+  padding-top: 22px;
+}
+
+.detail-outcome {
+  margin-top: -4px;
+  text-align: center;
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.detail-meta {
+  padding: 4px 16px;
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+}
+
+.dm-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 11px 0;
+  font-size: 14px;
+  border-bottom: 1px solid var(--surface-2);
+}
+
+.dm-item:last-child {
+  border-bottom: none;
+}
+
+.dm-item span {
+  color: var(--text-muted);
+}
+
+.dm-item strong {
+  font-weight: 700;
+  text-align: right;
+}
+
+.detail-team-stats {
+  padding: 14px 16px;
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+}
+
+.detail-team-stats h3 {
+  font-size: 15px;
+  font-weight: 800;
+}
+
+/* ===========================================================================
+   Spieler-Eingabe (Setup)
+   =========================================================================== */
+.player-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.pe-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.pe-count {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.pe-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.pe-item {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 7px 10px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
+.pe-num {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 30px;
+  height: 26px;
+  padding: 0 7px;
+  background: var(--primary);
+  color: #fff;
+  border-radius: 7px;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.pe-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.pe-remove {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--danger);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.pe-add {
+  display: flex;
+  gap: 8px;
+}
+
+.pe-num-input {
+  flex-shrink: 0;
+  width: 68px;
+  text-align: center;
+  padding: 12px 6px;
+}
+
+.pe-name-input {
+  flex: 1;
+  min-width: 0;
+  padding: 12px;
+}
+
+.pe-add-btn {
+  flex-shrink: 0;
+  width: 54px;
+  border-radius: var(--radius-sm);
+  background: var(--primary);
+  color: #fff;
+  font-size: 26px;
+  font-weight: 800;
+  transition: transform 0.07s, opacity 0.12s;
+}
+
+.pe-add-btn:active {
+  transform: scale(0.95);
+}
+
+.pe-add-btn:disabled {
+  opacity: 0.35;
+}
+
+.primary-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.primary-btn:disabled:active {
+  transform: none;
+  filter: none;
+}
+
+.setup-warning {
+  margin-top: -10px;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--danger);
+}
+
+/* ===========================================================================
+   Verlauf – Spielerzuordnung
+   =========================================================================== */
+.hi-main {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+  gap: 1px;
+}
+
+.hi-player {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.hi-team {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+/* ===========================================================================
+   Detailansicht – Punkte je Spieler
+   =========================================================================== */
+.detail-players {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.detail-player {
+  padding: 9px 11px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
+.dp-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dp-num {
+  flex-shrink: 0;
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--text-muted);
+}
+
+.dp-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.dp-total {
+  flex-shrink: 0;
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.dp-types {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 5px;
+  margin-top: 7px;
+}
+
+.dp-type {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  padding: 4px 2px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.dp-type strong {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--text);
+}
+
+.dp-type.attack strong {
+  color: var(--attack-strong);
+}
+
+.dp-type.defense strong {
+  color: var(--defense-strong);
+}
+
+/* ===========================================================================
+   Bewegungsreduzierung respektieren
+   =========================================================================== */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}
