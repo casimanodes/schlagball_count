@@ -38,6 +38,13 @@ export type GameAction =
     }
   | { type: 'HIT'; teamId: TeamId; playerId: string }
   | { type: 'SCORE'; teamId: TeamId; playerId: string; pointType: PointTypeId }
+  | {
+      type: 'ADJUST_POINT';
+      teamId: TeamId;
+      playerId: string;
+      pointType: PointTypeId;
+      delta: number;
+    }
   | { type: 'UNDO' }
   | { type: 'END_GAME'; reason: EndReason }
   | { type: 'TIMER_START' }
@@ -304,6 +311,59 @@ export function gameReducer(state: AppState, action: GameAction): AppState {
       };
     }
 
+    // -- Punkt nachträglich bearbeiten (manuelle Korrektur) ---------------
+    case 'ADJUST_POINT': {
+      if (!state.currentGame) return state;
+      const game = state.currentGame;
+      const { teamId, playerId, pointType, delta } = action;
+      if (delta !== 1 && delta !== -1) return state;
+      const team = game.teams[teamId];
+      const player = team.players.find((p) => p.id === playerId);
+      if (!player) return state;
+
+      const current = player.points[pointType];
+      const next = current + delta;
+      // Nie unter 0 fallen lassen.
+      if (next < 0) return state;
+
+      const event: GameEvent = {
+        id: makeId(),
+        kind: 'edit',
+        teamId,
+        playerId,
+        pointType,
+        delta,
+        timestamp: Date.now(),
+        causedRoleSwitch: false,
+        ...captureHitState(game),
+      };
+
+      return {
+        ...state,
+        currentGame: {
+          ...game,
+          teams: {
+            ...game.teams,
+            [teamId]: {
+              ...team,
+              players: team.players.map((p) =>
+                p.id === playerId
+                  ? {
+                      ...p,
+                      points: {
+                        ...p.points,
+                        [pointType]: next,
+                      },
+                    }
+                  : p,
+              ),
+            },
+          },
+          history: [...game.history, event],
+        },
+      };
+    }
+
     // -- Letzte Aktion rückgängig machen -----------------------------------
     case 'UNDO': {
       if (!state.currentGame || state.currentGame.history.length === 0) {
@@ -312,7 +372,7 @@ export function gameReducer(state: AppState, action: GameAction): AppState {
       const game = state.currentGame;
       const last = game.history[game.history.length - 1];
 
-      // 1. Punkt-Delta zurücknehmen (nur bei Punkt-Ereignissen).
+      // 1. Punkt-Delta zurücknehmen.
       let teams = game.teams;
       if (last.kind === 'point' && last.pointType !== null) {
         const pt = last.pointType;
@@ -328,6 +388,32 @@ export function gameReducer(state: AppState, action: GameAction): AppState {
                     points: {
                       ...p.points,
                       [pt]: Math.max(0, p.points[pt] - 1),
+                    },
+                  }
+                : p,
+            ),
+          },
+        };
+      } else if (
+        last.kind === 'edit' &&
+        last.pointType !== null &&
+        typeof last.delta === 'number'
+      ) {
+        // Bearbeitung umkehren: das Delta abziehen.
+        const pt = last.pointType;
+        const delta = last.delta;
+        const team = game.teams[last.teamId];
+        teams = {
+          ...game.teams,
+          [last.teamId]: {
+            ...team,
+            players: team.players.map((p) =>
+              p.id === last.playerId
+                ? {
+                    ...p,
+                    points: {
+                      ...p.points,
+                      [pt]: Math.max(0, p.points[pt] - delta),
                     },
                   }
                 : p,
@@ -408,6 +494,9 @@ export function gameReducer(state: AppState, action: GameAction): AppState {
             endsAt: null,
             remainingSec: t.durationSec,
           },
+          // Zeit-abgelaufen-Status zurücksetzen, wenn der Schiedsrichter
+          // den Timer neu starten möchte.
+          timeExpired: false,
         },
       };
     }
@@ -421,14 +510,18 @@ export function gameReducer(state: AppState, action: GameAction): AppState {
       const remaining = Math.max(0, Math.round((t.endsAt - Date.now()) / 1000));
 
       if (remaining <= 0) {
-        return finishGame(
-          state,
-          {
+        // Timer abgelaufen – Spiel NICHT automatisch beenden. Stattdessen
+        // den Timer stoppen und timeExpired markieren, damit der
+        // Schiedsrichter Punkte bearbeiten und das Spiel manuell beenden
+        // kann.
+        return {
+          ...state,
+          currentGame: {
             ...state.currentGame,
             timer: { ...t, running: false, endsAt: null, remainingSec: 0 },
+            timeExpired: true,
           },
-          'timer',
-        );
+        };
       }
 
       if (remaining === t.remainingSec) return state;

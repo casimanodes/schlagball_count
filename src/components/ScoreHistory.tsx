@@ -10,8 +10,10 @@ interface ScoreHistoryProps {
 }
 
 /**
- * Aufklappbare Verlaufsliste aller Ereignisse (neueste zuerst): erfasste
- * Punkte und Schläge ("Geschlagen"), jeweils mit dem zugeordneten Spieler.
+ * Aufklappbare Verlaufsliste aller Ereignisse (neueste zuerst):
+ *   - erfasste Punkte mit zugeordnetem Spieler
+ *   - Schläge ("Geschlagen")
+ *   - nachträgliche Bearbeitungen (+1 / -1 mit Hinweis)
  * Ereignisse, die einen Rollenwechsel ausgelöst haben, sind markiert.
  */
 export default function ScoreHistory({
@@ -52,17 +54,27 @@ export default function ScoreHistory({
               second: '2-digit',
             });
             const pt = ev.pointType ? POINT_TYPE_BY_ID[ev.pointType] : null;
+            const isEdit = ev.kind === 'edit';
+            const delta = typeof ev.delta === 'number' ? ev.delta : 0;
+            const deltaLabel = delta > 0 ? `+${delta}` : `${delta}`;
+            const rowClass = isEdit
+              ? `history-item edit ${pt ? pt.role : ''}`
+              : `history-item ${pt ? pt.role : 'hit'}`;
             return (
-              <li
-                key={ev.id}
-                className={`history-item ${pt ? pt.role : 'hit'}`}
-              >
+              <li key={ev.id} className={rowClass}>
                 <span className="hi-time">{time}</span>
                 <span className="hi-main">
                   <span className="hi-player">{playerLabel}</span>
                   <span className="hi-team">{team.name}</span>
                 </span>
-                {pt ? (
+                {isEdit && pt ? (
+                  <span className="hi-edit">
+                    <span className="hi-edit-tag">Korrektur</span>
+                    <span className="hi-edit-detail">
+                      {pt.short} {deltaLabel}
+                    </span>
+                  </span>
+                ) : pt ? (
                   <span className="hi-point">{pt.label}</span>
                 ) : (
                   <span className="hi-action">Geschlagen</span>

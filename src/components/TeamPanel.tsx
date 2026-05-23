@@ -14,8 +14,11 @@ interface TeamPanelProps {
   abwurfAvailable: boolean;
   /** Index des Spielers, der laut Reihenfolge als Nächster schlagen sollte. */
   nextBatterIndex: number;
+  /** Bearbeitungs-Modus für alle Spielerkarten dieses Panels. */
+  editMode: boolean;
   onHit: (playerId: string) => void;
   onScore: (playerId: string, pointType: PointTypeId) => void;
+  onAdjust: (playerId: string, pointType: PointTypeId, delta: number) => void;
 }
 
 /**
@@ -30,8 +33,10 @@ export default function TeamPanel({
   fangAvailable,
   abwurfAvailable,
   nextBatterIndex,
+  editMode,
   onHit,
   onScore,
+  onAdjust,
 }: TeamPanelProps) {
   const isAttack = role === 'attack';
   const [showBreakdown, setShowBreakdown] = useState(false);
@@ -58,8 +63,12 @@ export default function TeamPanel({
                 fangAvailable={fangAvailable}
                 abwurfAvailable={abwurfAvailable}
                 isNextBatter={isAttack && index === nextBatterIndex}
+                editMode={editMode}
                 onHit={() => onHit(player.id)}
                 onScore={(pointType) => onScore(player.id, pointType)}
+                onAdjust={(pointType, delta) =>
+                  onAdjust(player.id, pointType, delta)
+                }
               />
             ))}
           </div>

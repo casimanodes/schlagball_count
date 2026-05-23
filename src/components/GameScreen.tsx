@@ -8,6 +8,7 @@ import TimerBar from './TimerBar';
 import TeamPanel from './TeamPanel';
 import Controls from './Controls';
 import ScoreHistory from './ScoreHistory';
+import ConfirmDialog from './ConfirmDialog';
 
 interface GameScreenProps {
   game: Game;
@@ -20,11 +21,17 @@ const TEAM_IDS: TeamId[] = ['A', 'B'];
 /**
  * Haupt-Spielbildschirm: Scoreboard, Timer, beide Team-Panels, Verlauf und
  * Kontrollleiste. Solange der Timer läuft, wird er sekündlich aktualisiert;
- * läuft er ab, beendet der Reducer das Spiel automatisch.
+ * läuft er ab, markiert der Reducer das Spiel als "Zeit abgelaufen" – das
+ * Spiel wird NICHT automatisch beendet, sondern der Schiedsrichter kann
+ * noch Korrekturen vornehmen und das Spiel dann manuell beenden.
  */
 export default function GameScreen({ game, dispatch }: GameScreenProps) {
   const [roleSwitchMsg, setRoleSwitchMsg] = useState<string | null>(null);
+  const [timeUpToast, setTimeUpToast] = useState(false);
+  const [editMode, setEditMode] = useState(false);
+  const [confirmEndOpen, setConfirmEndOpen] = useState(false);
   const prevHistoryLen = useRef(game.history.length);
+  const prevTimeExpired = useRef<boolean>(!!game.timeExpired);
 
   // Timer-Ticker – läuft nur, solange der Timer aktiv ist.
   useEffect(() => {
@@ -52,20 +59,64 @@ export default function GameScreen({ game, dispatch }: GameScreenProps) {
     return () => clearTimeout(timer);
   }, [roleSwitchMsg]);
 
-  function handleEndGame() {
-    if (
-      window.confirm(
-        'Spiel jetzt beenden? Es wird in der Spielübersicht gespeichert.',
-      )
-    ) {
-      dispatch({ type: 'END_GAME', reason: 'manual' });
+  // Sobald die Zeit zum ersten Mal abläuft, kurze Toast-Meldung einblenden.
+  useEffect(() => {
+    if (game.timeExpired && !prevTimeExpired.current) {
+      setTimeUpToast(true);
     }
+    prevTimeExpired.current = !!game.timeExpired;
+  }, [game.timeExpired]);
+
+  useEffect(() => {
+    if (!timeUpToast) return;
+    const timer = setTimeout(() => setTimeUpToast(false), 3200);
+    return () => clearTimeout(timer);
+  }, [timeUpToast]);
+
+  function handleEndGame() {
+    setConfirmEndOpen(true);
+  }
+
+  function confirmEndGame() {
+    setConfirmEndOpen(false);
+    dispatch({
+      type: 'END_GAME',
+      reason: game.timeExpired ? 'timer' : 'manual',
+    });
+  }
+
+  function handleToggleEdit() {
+    setEditMode((on) => !on);
   }
 
   return (
     <div className="game">
       <Scoreboard game={game} />
-      <TimerBar timer={game.timer} dispatch={dispatch} />
+      <TimerBar
+        timer={game.timer}
+        dispatch={dispatch}
+        expired={!!game.timeExpired}
+      />
+
+      {game.timeExpired && (
+        <div className="time-up-bar" role="status">
+          <span className="time-up-title">Zeit abgelaufen</span>
+          <span className="time-up-sub">
+            Du kannst Punkte noch bearbeiten – beende das Spiel, wenn alles
+            passt.
+          </span>
+        </div>
+      )}
+
+      {editMode && (
+        <div className="edit-bar" role="status">
+          <span className="edit-bar-title">Bearbeitungs-Modus</span>
+          <span className="edit-bar-sub">
+            Punkte mit + / − korrigieren. Jede Änderung wird im Verlauf
+            dokumentiert.
+          </span>
+        </div>
+      )}
 
       <div className="game-body">
         <div className="panels">
@@ -82,9 +133,19 @@ export default function GameScreen({ game, dispatch }: GameScreenProps) {
                 id,
                 game.teams[id].players,
               )}
+              editMode={editMode}
               onHit={(playerId) => dispatch({ type: 'HIT', teamId: id, playerId })}
               onScore={(playerId, pointType) =>
                 dispatch({ type: 'SCORE', teamId: id, playerId, pointType })
+              }
+              onAdjust={(playerId, pointType, delta) =>
+                dispatch({
+                  type: 'ADJUST_POINT',
+                  teamId: id,
+                  playerId,
+                  pointType,
+                  delta,
+                })
               }
             />
           ))}
@@ -95,7 +156,9 @@ export default function GameScreen({ game, dispatch }: GameScreenProps) {
 
       <Controls
         canUndo={game.history.length > 0}
+        editMode={editMode}
         onUndo={() => dispatch({ type: 'UNDO' })}
+        onToggleEdit={handleToggleEdit}
         onEndGame={handleEndGame}
       />
 
@@ -104,6 +167,23 @@ export default function GameScreen({ game, dispatch }: GameScreenProps) {
           {roleSwitchMsg}
         </div>
       )}
+
+      {timeUpToast && !roleSwitchMsg && (
+        <div className="toast time-up-toast" role="status">
+          Zeit abgelaufen
+        </div>
+      )}
+
+      <ConfirmDialog
+        open={confirmEndOpen}
+        title="Spiel beenden?"
+        message="Das Spiel wird in der Spielübersicht gespeichert. Diese Aktion lässt sich nicht rückgängig machen."
+        confirmLabel="Beenden"
+        cancelLabel="Abbrechen"
+        variant="danger"
+        onConfirm={confirmEndGame}
+        onCancel={() => setConfirmEndOpen(false)}
+      />
     </div>
   );
 }

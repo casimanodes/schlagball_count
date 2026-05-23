@@ -81,8 +81,9 @@ export interface TeamState {
   players: Player[];
 }
 
-/** Art eines Ereignisses: ein Punkt oder ein Schlag ("geschlagen"). */
-export type GameEventKind = 'point' | 'hit';
+/** Art eines Ereignisses: ein Punkt, ein Schlag ("geschlagen") oder eine
+ *  nachträgliche Bearbeitung (manuelle Korrektur eines Punktewerts). */
+export type GameEventKind = 'point' | 'hit' | 'edit';
 
 /** Ein einzelnes Spielereignis. Enthält zusätzlich einen Snapshot des
  *  Schlag-Status VOR dem Ereignis, damit Undo zuverlässig funktioniert. */
@@ -91,8 +92,10 @@ export interface GameEvent {
   kind: GameEventKind;
   teamId: TeamId;
   playerId: string;
-  /** Bei kind 'point' gesetzt, bei kind 'hit' null. */
+  /** Bei kind 'point' und 'edit' gesetzt, bei kind 'hit' null. */
   pointType: PointTypeId | null;
+  /** Bei kind 'edit' die Veränderung (+1 oder -1); sonst null. */
+  delta?: number | null;
   timestamp: number;
   causedRoleSwitch: boolean;
   // --- Snapshot des Schlag-Status VOR dem Ereignis (für Undo) ---
@@ -125,6 +128,10 @@ export interface Game {
   history: GameEvent[];
   timer: TimerState;
   startedAt: number;
+  /** True, sobald der Timer abgelaufen ist. Das Spiel wird NICHT automatisch
+   *  beendet – der Schiedsrichter kann noch Punkte bearbeiten und das Spiel
+   *  dann manuell beenden. */
+  timeExpired?: boolean;
 }
 
 /** Grund für das Spielende. */

@@ -26,14 +26,22 @@ function downloadGames(games: CompletedGame[]): void {
     const verlauf = game.history.map((ev, i) => {
       const team = game.teams[ev.teamId];
       const player = team.players.find((p) => p.id === ev.playerId);
+      let aktion: string;
+      if (ev.kind === 'edit' && ev.pointType) {
+        const delta = typeof ev.delta === 'number' ? ev.delta : 0;
+        const sign = delta > 0 ? '+' : '';
+        aktion = `Korrektur ${POINT_TYPE_BY_ID[ev.pointType].label} (${sign}${delta})`;
+      } else if (ev.pointType) {
+        aktion = POINT_TYPE_BY_ID[ev.pointType].label;
+      } else {
+        aktion = 'Geschlagen';
+      }
       return {
         nr: i + 1,
         zeit: new Date(ev.timestamp).toLocaleTimeString('de-DE'),
         team: team.name,
         spieler: player ? `#${player.number} ${player.name}` : 'Unbekannt',
-        aktion: ev.pointType
-          ? POINT_TYPE_BY_ID[ev.pointType].label
-          : 'Geschlagen',
+        aktion,
       };
     });
     return {

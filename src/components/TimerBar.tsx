@@ -6,22 +6,36 @@ import { formatClock } from '../types';
 interface TimerBarProps {
   timer: TimerState;
   dispatch: Dispatch<GameAction>;
+  /** Ob die Spielzeit bereits abgelaufen ist (Spiel läuft trotzdem weiter,
+   *  bis es manuell beendet wird). */
+  expired: boolean;
 }
 
 /**
  * Timer-Leiste unter dem Scoreboard. Der Schiedsrichter startet, pausiert
- * oder setzt den Timer zurück. Läuft er ab, beendet der Reducer das Spiel.
+ * oder setzt den Timer zurück. Läuft der Timer ab, wird das Spiel NICHT
+ * automatisch beendet – die Anzeige wechselt nur auf "Abgelaufen" und der
+ * Schiedsrichter kann das Spiel manuell beenden oder Punkte bearbeiten.
+ * Ein Reset stellt den Timer auf die ursprüngliche Dauer zurück.
  */
-export default function TimerBar({ timer, dispatch }: TimerBarProps) {
+export default function TimerBar({ timer, dispatch, expired }: TimerBarProps) {
   const { remainingSec, running } = timer;
   const low = running && remainingSec <= 30;
-  const stateClass = low ? 'low' : running ? 'running' : 'paused';
+  const stateClass = expired
+    ? 'expired'
+    : low
+    ? 'low'
+    : running
+    ? 'running'
+    : 'paused';
 
   return (
     <div className={`timer-bar ${stateClass}`}>
       <div className="timer-clock">
         <span className="timer-label">SPIELZEIT</span>
-        <span className="timer-display">{formatClock(remainingSec)}</span>
+        <span className="timer-display">
+          {expired ? 'Abgelaufen' : formatClock(remainingSec)}
+        </span>
       </div>
       <div className="timer-controls">
         <button
