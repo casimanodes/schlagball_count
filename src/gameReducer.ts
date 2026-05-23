@@ -22,7 +22,9 @@ import type {
   Player,
   PlayerDraft,
   PointTypeId,
+  TeamColorId,
   TeamId,
+  TeamState,
 } from './types';
 import { ROLE_SWITCH_POINT_TYPE } from './types';
 
@@ -31,6 +33,8 @@ export type GameAction =
       type: 'START_GAME';
       teamAName: string;
       teamBName: string;
+      teamAColor: TeamColorId;
+      teamBColor: TeamColorId;
       attackingTeam: TeamId;
       timerMinutes: number;
       playersA: PlayerDraft[];
@@ -49,7 +53,6 @@ export type GameAction =
   | { type: 'END_GAME'; reason: EndReason }
   | { type: 'TIMER_START' }
   | { type: 'TIMER_PAUSE' }
-  | { type: 'TIMER_RESET' }
   | { type: 'TIMER_TICK' }
   | { type: 'NEW_GAME' }
   | { type: 'OPEN_GAME'; gameId: string }
@@ -106,9 +109,9 @@ function captureHitState(game: Game): {
 
 /** Setzt das hasHit-Flag genau für die übergebenen Spieler-Ids. */
 function applyHasHit(
-  teams: Record<TeamId, { name: string; players: Player[] }>,
+  teams: Record<TeamId, TeamState>,
   hitIds: string[],
-): Record<TeamId, { name: string; players: Player[] }> {
+): Record<TeamId, TeamState> {
   const set = new Set(hitIds);
   const map = (players: Player[]) =>
     players.map((p) => ({ ...p, hasHit: set.has(p.id) }));
@@ -145,10 +148,12 @@ export function gameReducer(state: AppState, action: GameAction): AppState {
         teams: {
           A: {
             name: action.teamAName.trim() || 'Team 1',
+            color: action.teamAColor,
             players: makePlayers(action.playersA),
           },
           B: {
             name: action.teamBName.trim() || 'Team 2',
+            color: action.teamBColor,
             players: makePlayers(action.playersB),
           },
         },
@@ -476,27 +481,6 @@ export function gameReducer(state: AppState, action: GameAction): AppState {
         currentGame: {
           ...state.currentGame,
           timer: { ...t, running: false, endsAt: null, remainingSec: remaining },
-        },
-      };
-    }
-
-    // -- Timer auf die eingestellte Dauer zurücksetzen ---------------------
-    case 'TIMER_RESET': {
-      if (!state.currentGame) return state;
-      const t = state.currentGame.timer;
-      return {
-        ...state,
-        currentGame: {
-          ...state.currentGame,
-          timer: {
-            ...t,
-            running: false,
-            endsAt: null,
-            remainingSec: t.durationSec,
-          },
-          // Zeit-abgelaufen-Status zurücksetzen, wenn der Schiedsrichter
-          // den Timer neu starten möchte.
-          timeExpired: false,
         },
       };
     }

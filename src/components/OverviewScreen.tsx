@@ -1,7 +1,7 @@
 import type { Dispatch } from 'react';
 import type { GameAction } from '../gameReducer';
 import type { CompletedGame } from '../types';
-import { POINT_TYPE_BY_ID, teamTotal } from '../types';
+import { POINT_TYPE_BY_ID, TEAM_COLOR_BY_ID, teamTotal } from '../types';
 
 interface OverviewScreenProps {
   games: CompletedGame[];
@@ -17,7 +17,7 @@ function pointsClass(winner: Winner, team: 'A' | 'B'): string {
 
 /**
  * Lädt alle beendeten Spiele als lesbare JSON-Datei herunter – inklusive des
- * Verlaufs (Reihenfolge aller Punkte und Schläge) je Spiel.
+ * Verlaufs (Reihenfolge aller Punkte, Schläge und Korrekturen) je Spiel.
  */
 function downloadGames(games: CompletedGame[]): void {
   const spiele = games.map((game, index) => {
@@ -74,7 +74,8 @@ function downloadGames(games: CompletedGame[]): void {
 
 /**
  * Spielübersicht: listet alle beendeten Spiele (z. B. eines Turniers) mit
- * Teamnamen und Ergebnis. Ein Tippen auf eine Karte öffnet die Detailansicht.
+ * Teamnamen, Team-Farben und Ergebnis. Ein Tippen auf eine Karte öffnet
+ * die Detailansicht.
  */
 export default function OverviewScreen({ games, dispatch }: OverviewScreenProps) {
   return (
@@ -102,6 +103,8 @@ export default function OverviewScreen({ games, dispatch }: OverviewScreenProps)
           const totalB = teamTotal(game.teams.B);
           const winner: Winner =
             totalA > totalB ? 'A' : totalB > totalA ? 'B' : 'draw';
+          const cfgA = TEAM_COLOR_BY_ID[game.teams.A.color];
+          const cfgB = TEAM_COLOR_BY_ID[game.teams.B.color];
           const date = new Date(game.finishedAt).toLocaleString('de-DE', {
             dateStyle: 'short',
             timeStyle: 'short',
@@ -123,7 +126,15 @@ export default function OverviewScreen({ games, dispatch }: OverviewScreenProps)
               </div>
 
               <div className="game-card-main">
-                <span className={`gc-team ${winner === 'A' ? 'winner' : ''}`}>
+                <span
+                  className={`gc-team ${winner === 'A' ? 'winner' : ''}`}
+                  style={{ color: cfgA.strong }}
+                >
+                  <span
+                    className="gc-dot"
+                    style={{ background: cfgA.bg }}
+                    aria-hidden="true"
+                  />
                   {game.teams.A.name}
                 </span>
                 <span className="gc-score">
@@ -133,8 +144,14 @@ export default function OverviewScreen({ games, dispatch }: OverviewScreenProps)
                 </span>
                 <span
                   className={`gc-team right ${winner === 'B' ? 'winner' : ''}`}
+                  style={{ color: cfgB.strong }}
                 >
                   {game.teams.B.name}
+                  <span
+                    className="gc-dot"
+                    style={{ background: cfgB.bg }}
+                    aria-hidden="true"
+                  />
                 </span>
               </div>
 

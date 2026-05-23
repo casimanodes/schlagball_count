@@ -1,8 +1,15 @@
 import type { Dispatch } from 'react';
 import type { GameAction } from '../gameReducer';
 import type { CompletedGame, TeamId } from '../types';
-import { ALL_POINT_TYPES, formatClock, playerTotal, teamTotal } from '../types';
+import {
+  ALL_POINT_TYPES,
+  formatClock,
+  playerTotal,
+  TEAM_COLOR_BY_ID,
+  teamTotal,
+} from '../types';
 import ScoreHistory from './ScoreHistory';
+import { PointIcon } from './icons';
 
 interface GameDetailProps {
   game: CompletedGame;
@@ -13,8 +20,8 @@ interface GameDetailProps {
 const TEAM_IDS: TeamId[] = ['A', 'B'];
 
 /**
- * Detailansicht eines beendeten Spiels: Ergebnis, Sieger, Eckdaten,
- * Punkte je Spieler (Zuordnung) und der vollständige Verlauf.
+ * Detailansicht eines beendeten Spiels: Ergebnis (in Team-Farbe), Sieger,
+ * Eckdaten, Punkte je Spieler und der vollständige Verlauf.
  */
 export default function GameDetail({
   game,
@@ -25,6 +32,9 @@ export default function GameDetail({
   const totalB = teamTotal(game.teams.B);
   const winner: 'A' | 'B' | 'draw' =
     totalA > totalB ? 'A' : totalB > totalA ? 'B' : 'draw';
+
+  const cfgA = TEAM_COLOR_BY_ID[game.teams.A.color];
+  const cfgB = TEAM_COLOR_BY_ID[game.teams.B.color];
 
   const durationSec = Math.round((game.finishedAt - game.startedAt) / 1000);
   const finished = new Date(game.finishedAt).toLocaleString('de-DE', {
@@ -46,14 +56,34 @@ export default function GameDetail({
 
       <div className="detail-body">
         <div className="detail-result">
-          <div className={`dr-team ${winner === 'A' ? 'winner' : ''}`}>
+          <div
+            className={`dr-team ${winner === 'A' ? 'winner' : ''}`}
+            style={{ background: cfgA.soft, color: cfgA.strong }}
+          >
+            <span
+              className="dr-color"
+              style={{ background: cfgA.bg }}
+              aria-hidden="true"
+            />
             <span className="dr-name">{game.teams.A.name}</span>
-            <span className="dr-score">{totalA}</span>
+            <span className="dr-score" style={{ color: cfgA.strong }}>
+              {totalA}
+            </span>
           </div>
           <span className="dr-sep">:</span>
-          <div className={`dr-team ${winner === 'B' ? 'winner' : ''}`}>
+          <div
+            className={`dr-team ${winner === 'B' ? 'winner' : ''}`}
+            style={{ background: cfgB.soft, color: cfgB.strong }}
+          >
+            <span
+              className="dr-color"
+              style={{ background: cfgB.bg }}
+              aria-hidden="true"
+            />
             <span className="dr-name">{game.teams.B.name}</span>
-            <span className="dr-score">{totalB}</span>
+            <span className="dr-score" style={{ color: cfgB.strong }}>
+              {totalB}
+            </span>
           </div>
         </div>
 
@@ -84,9 +114,17 @@ export default function GameDetail({
 
         {TEAM_IDS.map((id) => {
           const team = game.teams[id];
+          const cfg = TEAM_COLOR_BY_ID[team.color];
           return (
             <div key={id} className="detail-team-stats">
-              <h3>{team.name}</h3>
+              <h3 style={{ color: cfg.strong }}>
+                <span
+                  className="dts-dot"
+                  style={{ background: cfg.bg }}
+                  aria-hidden="true"
+                />
+                {team.name}
+              </h3>
               <ul className="detail-players">
                 {team.players.map((p) => (
                   <li key={p.id} className="detail-player">
@@ -98,6 +136,9 @@ export default function GameDetail({
                     <div className="dp-types">
                       {ALL_POINT_TYPES.map((pt) => (
                         <span key={pt.id} className={`dp-type ${pt.role}`}>
+                          <span className="dp-type-icon">
+                            <PointIcon id={pt.id} size={12} />
+                          </span>
                           {pt.short}
                           <strong>{p.points[pt.id]}</strong>
                         </span>
@@ -110,7 +151,10 @@ export default function GameDetail({
           );
         })}
 
-        <ScoreHistory history={game.history} teams={game.teams} defaultOpen />
+        <section className="detail-history">
+          <h3>Verlauf</h3>
+          <ScoreHistory history={game.history} teams={game.teams} />
+        </section>
       </div>
     </div>
   );

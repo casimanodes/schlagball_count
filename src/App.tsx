@@ -1,6 +1,7 @@
 import { useEffect, useReducer, useRef, useState } from 'react';
 import { gameReducer, initialState } from './gameReducer';
-import type { AppState } from './types';
+import type { AppState, CompletedGame, Game, TeamId } from './types';
+import { DEFAULT_TEAM_COLOR, ensureTeamColor } from './types';
 import SetupScreen from './components/SetupScreen';
 import GameScreen from './components/GameScreen';
 import OverviewScreen from './components/OverviewScreen';
@@ -18,6 +19,27 @@ function isValidView(v: unknown): v is AppState['view'] {
   return v === 'setup' || v === 'playing' || v === 'overview' || v === 'detail';
 }
 
+/**
+ * Migration für Altdaten ohne Team-Farbe: weist jedem Team die Standardfarbe
+ * (A=Blau, B=Rot) zu, falls keine vorhanden ist. So bleiben Bestandsspiele
+ * nach dem Update weiter benutzbar.
+ */
+function withTeamColors<T extends Game | CompletedGame | null>(game: T): T {
+  if (!game) return game;
+  const teams = game.teams;
+  const ids: TeamId[] = ['A', 'B'];
+  const next = { ...teams };
+  for (const id of ids) {
+    const team = teams[id];
+    if (!team) continue;
+    next[id] = {
+      ...team,
+      color: ensureTeamColor(team.color, DEFAULT_TEAM_COLOR[id]),
+    };
+  }
+  return { ...game, teams: next } as T;
+}
+
 function loadState(): AppState {
   // Aktuelles Format: laufendes Spiel + Archiv getrennt.
   try {
@@ -29,11 +51,15 @@ function loadState(): AppState {
         const archiveRaw = localStorage.getItem(KEY_ARCHIVE);
         if (archiveRaw) {
           const archive = JSON.parse(archiveRaw);
-          if (Array.isArray(archive)) completedGames = archive;
+          if (Array.isArray(archive)) {
+            completedGames = archive
+              .map((g: CompletedGame) => withTeamColors(g))
+              .filter((g): g is CompletedGame => g !== null);
+          }
         }
         return {
           view: current.view,
-          currentGame: current.currentGame ?? null,
+          currentGame: withTeamColors(current.currentGame ?? null),
           selectedGameId: current.selectedGameId ?? null,
           completedGames,
         };
@@ -49,7 +75,13 @@ function loadState(): AppState {
     if (legacyRaw) {
       const parsed = JSON.parse(legacyRaw) as AppState;
       if (isValidView(parsed?.view) && Array.isArray(parsed.completedGames)) {
-        return parsed;
+        return {
+          ...parsed,
+          currentGame: withTeamColors(parsed.currentGame),
+          completedGames: parsed.completedGames
+            .map((g) => withTeamColors(g))
+            .filter((g): g is CompletedGame => g !== null),
+        };
       }
     }
   } catch {

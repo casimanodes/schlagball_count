@@ -1,7 +1,7 @@
-import { useState } from 'react';
-import { ALL_POINT_TYPES, teamPointTotals } from '../types';
+import { TEAM_COLOR_BY_ID } from '../types';
 import type { PointTypeId, Role, TeamState } from '../types';
 import PlayerCard from './PlayerCard';
+import { AttackIcon, DefenseIcon } from './icons';
 
 interface TeamPanelProps {
   team: TeamState;
@@ -22,9 +22,11 @@ interface TeamPanelProps {
 }
 
 /**
- * Panel einer Mannschaft. Zeigt für jeden Spieler eine Karte mit
- * zweigeteiltem Punkt-Button. Im Angriff markiert ein Icon den Spieler, der
- * laut fester Schlagreihenfolge als Nächster dran ist.
+ * Panel einer Mannschaft. Banner mit der TEAM-FARBE (konstant) und einem
+ * separaten Role-Badge (SVG + Wort), das je nach Spielphase wechselt.
+ * Die aktuelle Punktewert-Anzeige steckt in den Spielerkarten selbst –
+ * die ausklappbare Team-Punktarten-Liste wurde in eine gemeinsame
+ * Komponente ausgelagert, die über dem Verlauf erscheint.
  */
 export default function TeamPanel({
   team,
@@ -39,14 +41,19 @@ export default function TeamPanel({
   onAdjust,
 }: TeamPanelProps) {
   const isAttack = role === 'attack';
-  const [showBreakdown, setShowBreakdown] = useState(false);
-  const totals = teamPointTotals(team);
+  const cfg = TEAM_COLOR_BY_ID[team.color];
 
   return (
-    <section className={`panel ${role}`}>
-      <div className="panel-banner">
+    <section className="panel">
+      <div
+        className="panel-banner"
+        style={{ background: cfg.bg, color: cfg.fg }}
+      >
         <span className="panel-team-name">{team.name}</span>
-        <span className="role-badge">{isAttack ? 'ANGRIFF' : 'VERTEIDIGUNG'}</span>
+        <span className={`role-badge ${isAttack ? 'attack' : 'defense'}`}>
+          {isAttack ? <AttackIcon size={14} /> : <DefenseIcon size={14} />}
+          <span>{isAttack ? 'ANGRIFF' : 'VERTEIDIGUNG'}</span>
+        </span>
       </div>
 
       <div className="panel-body">
@@ -70,31 +77,6 @@ export default function TeamPanel({
                   onAdjust(player.id, pointType, delta)
                 }
               />
-            ))}
-          </div>
-        )}
-
-        <button
-          className="breakdown-toggle"
-          onClick={() => setShowBreakdown((open) => !open)}
-          aria-expanded={showBreakdown}
-        >
-          <span>Team-Punktarten {showBreakdown ? 'ausblenden' : 'anzeigen'}</span>
-          <span
-            className={`chevron ${showBreakdown ? 'open' : ''}`}
-            aria-hidden="true"
-          >
-            &#9662;
-          </span>
-        </button>
-
-        {showBreakdown && (
-          <div className="breakdown">
-            {ALL_POINT_TYPES.map((pt) => (
-              <div key={pt.id} className={`breakdown-item ${pt.role}`}>
-                <span className="breakdown-label">{pt.label}</span>
-                <span className="breakdown-value">{totals[pt.id]}</span>
-              </div>
             ))}
           </div>
         )}

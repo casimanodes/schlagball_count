@@ -19,6 +19,113 @@ export type Role = 'attack' | 'defense';
 /** Stabile Kennung eines Teams (A = oben, B = unten – Position bleibt fest). */
 export type TeamId = 'A' | 'B';
 
+/** Wählbare Team-Farben. Die Farbe ist eine reine Team-Identität und
+ *  ändert sich nicht während des Spiels. */
+export type TeamColorId =
+  | 'blue'
+  | 'red'
+  | 'green'
+  | 'orange'
+  | 'purple'
+  | 'teal';
+
+export interface TeamColorConfig {
+  id: TeamColorId;
+  label: string;
+  /** Kräftige Hauptfarbe (Banner, Akzente). */
+  bg: string;
+  /** Lesbare Textfarbe auf der Hauptfarbe. */
+  fg: string;
+  /** Sehr helle Variante (Karten-Hintergrund, Punkte-Buttons). */
+  soft: string;
+  /** Mitteldunkler Ton für Text/Akzente auf hellem Grund. */
+  strong: string;
+  /** Rand-/Trennfarbe für Karten. */
+  border: string;
+}
+
+/** Liste aller wählbaren Team-Farben. Reihenfolge = Anzeigereihenfolge im Setup. */
+export const TEAM_COLORS: TeamColorConfig[] = [
+  {
+    id: 'blue',
+    label: 'Blau',
+    bg: '#2563eb',
+    fg: '#ffffff',
+    soft: '#dbeafe',
+    strong: '#1d4ed8',
+    border: '#93c5fd',
+  },
+  {
+    id: 'red',
+    label: 'Rot',
+    bg: '#dc2626',
+    fg: '#ffffff',
+    soft: '#fee2e2',
+    strong: '#b91c1c',
+    border: '#fca5a5',
+  },
+  {
+    id: 'green',
+    label: 'Grün',
+    bg: '#16a34a',
+    fg: '#ffffff',
+    soft: '#dcfce7',
+    strong: '#15803d',
+    border: '#86efac',
+  },
+  {
+    id: 'orange',
+    label: 'Orange',
+    bg: '#ea580c',
+    fg: '#ffffff',
+    soft: '#ffedd5',
+    strong: '#c2410c',
+    border: '#fdba74',
+  },
+  {
+    id: 'purple',
+    label: 'Lila',
+    bg: '#9333ea',
+    fg: '#ffffff',
+    soft: '#f3e8ff',
+    strong: '#7e22ce',
+    border: '#d8b4fe',
+  },
+  {
+    id: 'teal',
+    label: 'Türkis',
+    bg: '#0d9488',
+    fg: '#ffffff',
+    soft: '#ccfbf1',
+    strong: '#0f766e',
+    border: '#5eead4',
+  },
+];
+
+export const TEAM_COLOR_BY_ID: Record<TeamColorId, TeamColorConfig> =
+  Object.fromEntries(TEAM_COLORS.map((c) => [c.id, c])) as Record<
+    TeamColorId,
+    TeamColorConfig
+  >;
+
+/** Vorgabefarben, wenn das Setup keine Auswahl trifft oder ein altes
+ *  Spielarchiv ohne Farbe geladen wird. */
+export const DEFAULT_TEAM_COLOR: Record<TeamId, TeamColorId> = {
+  A: 'blue',
+  B: 'red',
+};
+
+/** Garantiert eine gültige Team-Farbe (Fallback für Altdaten). */
+export function ensureTeamColor(
+  id: TeamColorId | string | undefined,
+  fallback: TeamColorId,
+): TeamColorId {
+  if (id && (TEAM_COLOR_BY_ID as Record<string, TeamColorConfig>)[id]) {
+    return id as TeamColorId;
+  }
+  return fallback;
+}
+
 /** Kennungen der vier fixen Punktarten. */
 export type PointTypeId =
   | 'laufpunkt'
@@ -31,18 +138,32 @@ export interface PointTypeConfig {
   label: string;
   short: string;
   role: Role;
+  /** Punktwert dieser Aktion. Wird auf jedem Punkt-Button angezeigt. */
+  value: number;
 }
 
 /** Punktarten der ANGRIFFSmannschaft – fix, keine weiteren. */
 export const ATTACK_POINT_TYPES: PointTypeConfig[] = [
-  { id: 'laufpunkt', label: 'Laufpunkt', short: 'Lauf', role: 'attack' },
-  { id: 'weitschlagpunkt', label: 'Weitschlagpunkt', short: 'Weitschlag', role: 'attack' },
+  { id: 'laufpunkt', label: 'Laufpunkt', short: 'Lauf', role: 'attack', value: 1 },
+  {
+    id: 'weitschlagpunkt',
+    label: 'Weitschlagpunkt',
+    short: 'Weitschlag',
+    role: 'attack',
+    value: 1,
+  },
 ];
 
 /** Punktarten der VERTEIDIGUNGSmannschaft – fix, keine weiteren. */
 export const DEFENSE_POINT_TYPES: PointTypeConfig[] = [
-  { id: 'fangpunkt', label: 'Fangpunkt', short: 'Fang', role: 'defense' },
-  { id: 'abwurfpunkt', label: 'Abwurfpunkt', short: 'Abwurf', role: 'defense' },
+  { id: 'fangpunkt', label: 'Fangpunkt', short: 'Fang', role: 'defense', value: 1 },
+  {
+    id: 'abwurfpunkt',
+    label: 'Abwurfpunkt',
+    short: 'Abwurf',
+    role: 'defense',
+    value: 1,
+  },
 ];
 
 export const ALL_POINT_TYPES: PointTypeConfig[] = [
@@ -75,9 +196,10 @@ export interface Player {
   hasHit: boolean;
 }
 
-/** Zustand eines Teams: Name und Spielerliste. */
+/** Zustand eines Teams: Name, Identitätsfarbe und Spielerliste. */
 export interface TeamState {
   name: string;
+  color: TeamColorId;
   players: Player[];
 }
 

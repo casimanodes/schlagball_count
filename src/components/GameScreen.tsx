@@ -4,11 +4,10 @@ import type { GameAction } from '../gameReducer';
 import type { Game, TeamId } from '../types';
 import { computeNextBatterIndex } from '../types';
 import Scoreboard from './Scoreboard';
-import TimerBar from './TimerBar';
 import TeamPanel from './TeamPanel';
 import Controls from './Controls';
-import ScoreHistory from './ScoreHistory';
 import ConfirmDialog from './ConfirmDialog';
+import HistoryDrawer from './HistoryDrawer';
 
 interface GameScreenProps {
   game: Game;
@@ -19,19 +18,20 @@ interface GameScreenProps {
 const TEAM_IDS: TeamId[] = ['A', 'B'];
 
 /**
- * Haupt-Spielbildschirm: Scoreboard, Timer, beide Team-Panels, Verlauf und
- * Kontrollleiste. Solange der Timer läuft, wird er sekündlich aktualisiert;
- * läuft er ab, markiert der Reducer das Spiel als "Zeit abgelaufen" – das
- * Spiel wird NICHT automatisch beendet, sondern der Schiedsrichter kann
- * noch Korrekturen vornehmen und das Spiel dann manuell beenden.
+ * Haupt-Spielbildschirm: Scoreboard mit integriertem (klickbarem) Timer,
+ * beide Team-Panels und Kontrollleiste mit Icon-Buttons. Verlauf und
+ * Team-Punktarten sind im Verlauf-Drawer untergebracht (über das Symbol in
+ * der Kontrollleiste). Bei Timer-Ablauf wird ein deutlicher Hinweis
+ * eingeblendet, das Spiel läuft aber bis zum manuellen Beenden weiter.
  */
 export default function GameScreen({ game, dispatch }: GameScreenProps) {
-  const [roleSwitchMsg, setRoleSwitchMsg] = useState<string | null>(null);
-  const [timeUpToast, setTimeUpToast] = useState(false);
+  const [toastMsg, setToastMsg] = useState<string | null>(null);
   const [editMode, setEditMode] = useState(false);
   const [confirmEndOpen, setConfirmEndOpen] = useState(false);
+  const [historyOpen, setHistoryOpen] = useState(false);
   const prevHistoryLen = useRef(game.history.length);
   const prevTimeExpired = useRef<boolean>(!!game.timeExpired);
+  const prevRunning = useRef<boolean>(game.timer.running);
 
   // Timer-Ticker – läuft nur, solange der Timer aktiv ist.
   useEffect(() => {
@@ -47,31 +47,36 @@ export default function GameScreen({ game, dispatch }: GameScreenProps) {
       const last = game.history[len - 1];
       if (last.causedRoleSwitch) {
         const attacker = game.teams[game.attackingTeam].name;
-        setRoleSwitchMsg(`Rollenwechsel – ${attacker} greift jetzt an`);
+        setToastMsg(`Rollenwechsel – ${attacker} greift jetzt an`);
       }
     }
     prevHistoryLen.current = len;
   }, [game.history, game.attackingTeam, game.teams]);
 
+  // Timer-Status-Wechsel (Pause/Start/Abgelaufen) als Toast einblenden.
   useEffect(() => {
-    if (!roleSwitchMsg) return;
-    const timer = setTimeout(() => setRoleSwitchMsg(null), 3200);
-    return () => clearTimeout(timer);
-  }, [roleSwitchMsg]);
+    const wasRunning = prevRunning.current;
+    const isRunning = game.timer.running;
+    const wasExpired = prevTimeExpired.current;
+    const isExpired = !!game.timeExpired;
 
-  // Sobald die Zeit zum ersten Mal abläuft, kurze Toast-Meldung einblenden.
-  useEffect(() => {
-    if (game.timeExpired && !prevTimeExpired.current) {
-      setTimeUpToast(true);
+    if (!wasExpired && isExpired) {
+      setToastMsg('Zeit abgelaufen');
+    } else if (wasRunning && !isRunning && !isExpired) {
+      setToastMsg('Timer pausiert');
+    } else if (!wasRunning && isRunning) {
+      setToastMsg('Timer läuft');
     }
-    prevTimeExpired.current = !!game.timeExpired;
-  }, [game.timeExpired]);
+
+    prevRunning.current = isRunning;
+    prevTimeExpired.current = isExpired;
+  }, [game.timer.running, game.timeExpired]);
 
   useEffect(() => {
-    if (!timeUpToast) return;
-    const timer = setTimeout(() => setTimeUpToast(false), 3200);
+    if (!toastMsg) return;
+    const timer = setTimeout(() => setToastMsg(null), 2600);
     return () => clearTimeout(timer);
-  }, [timeUpToast]);
+  }, [toastMsg]);
 
   function handleEndGame() {
     setConfirmEndOpen(true);
@@ -91,9 +96,8 @@ export default function GameScreen({ game, dispatch }: GameScreenProps) {
 
   return (
     <div className="game">
-      <Scoreboard game={game} />
-      <TimerBar
-        timer={game.timer}
+      <Scoreboard
+        game={game}
         dispatch={dispatch}
         expired={!!game.timeExpired}
       />
@@ -150,29 +154,30 @@ export default function GameScreen({ game, dispatch }: GameScreenProps) {
             />
           ))}
         </div>
-
-        <ScoreHistory history={game.history} teams={game.teams} />
       </div>
 
       <Controls
         canUndo={game.history.length > 0}
         editMode={editMode}
+        historyCount={game.history.length}
         onUndo={() => dispatch({ type: 'UNDO' })}
         onToggleEdit={handleToggleEdit}
+        onOpenHistory={() => setHistoryOpen(true)}
         onEndGame={handleEndGame}
       />
 
-      {roleSwitchMsg && (
+      {toastMsg && (
         <div className="toast" role="status">
-          {roleSwitchMsg}
+          {toastMsg}
         </div>
       )}
 
-      {timeUpToast && !roleSwitchMsg && (
-        <div className="toast time-up-toast" role="status">
-          Zeit abgelaufen
-        </div>
-      )}
+      <HistoryDrawer
+        open={historyOpen}
+        history={game.history}
+        teams={game.teams}
+        onClose={() => setHistoryOpen(false)}
+      />
 
       <ConfirmDialog
         open={confirmEndOpen}

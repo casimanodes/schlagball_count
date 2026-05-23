@@ -1,5 +1,10 @@
-import { ALL_POINT_TYPES, playerTotal } from '../types';
+import {
+  ALL_POINT_TYPES,
+  playerTotal,
+  POINT_TYPE_BY_ID,
+} from '../types';
 import type { Player, PointTypeId, Role } from '../types';
+import { BatIcon, PointIcon } from './icons';
 
 interface PlayerCardProps {
   player: Player;
@@ -22,7 +27,9 @@ interface PlayerCardProps {
 
 /**
  * Karte eines Spielers mit zweigeteiltem Button. Welche Hälften aktiv sind,
- * folgt der Schlagball-Logik:
+ * folgt der Schlagball-Logik – die Anzeige auf jedem Knopf zeigt den
+ * Punktwert der Aktion (z. B. „+1") statt der bisher erzielten Anzahl,
+ * damit klar ist, was ein Tipp eintragen würde.
  *
  *   ANGRIFF:
  *     - linke Hälfte  "Geschlagen" – Schlag eintragen; danach "Weitschlag"
@@ -34,12 +41,8 @@ interface PlayerCardProps {
  *     - rechte Hälfte "Abwurfpunkt" – ab dem ersten Schlag im Spiel; löst den
  *       Rollenwechsel aus
  *
- * Im Angriff markiert ein Icon den Spieler, der als Nächster schlagen sollte
- * (feste Reihenfolge). Schlagen bleibt für alle Spieler möglich.
- *
  * Im BEARBEITUNGS-Modus werden statt der normalen Punkt-Buttons für jede
- * Punktart +/- Tasten angezeigt, mit denen der Schiedsrichter eine
- * Korrektur eintragen kann. Jede Änderung wird im Verlauf dokumentiert.
+ * Punktart +/- Tasten samt aktuellem Spielerstand angezeigt.
  */
 export default function PlayerCard({
   player,
@@ -54,6 +57,10 @@ export default function PlayerCard({
   onAdjust,
 }: PlayerCardProps) {
   const isAttack = role === 'attack';
+  const laufVal = POINT_TYPE_BY_ID.laufpunkt.value;
+  const weitVal = POINT_TYPE_BY_ID.weitschlagpunkt.value;
+  const fangVal = POINT_TYPE_BY_ID.fangpunkt.value;
+  const abwurfVal = POINT_TYPE_BY_ID.abwurfpunkt.value;
 
   return (
     <div
@@ -76,7 +83,9 @@ export default function PlayerCard({
         <div className="player-edit">
           {ALL_POINT_TYPES.map((pt) => (
             <div key={pt.id} className={`edit-row ${pt.role}`}>
-              <span className="edit-label">{pt.short}</span>
+              <span className="edit-label">
+                <PointIcon id={pt.id} size={16} /> {pt.short}
+              </span>
               <div className="edit-controls">
                 <button
                   type="button"
@@ -107,8 +116,8 @@ export default function PlayerCard({
               {/* Linke Hälfte: erst "Geschlagen", danach "Weitschlag" */}
               {!player.hasHit ? (
                 <button className="player-half hit-action" onClick={onHit}>
+                  <BatIcon size={18} />
                   <span className="half-label">Geschlagen</span>
-                  <span className="half-sub">Schlag eintragen</span>
                 </button>
               ) : (
                 <button
@@ -116,10 +125,9 @@ export default function PlayerCard({
                   disabled={lastHitterId !== player.id}
                   onClick={() => onScore('weitschlagpunkt')}
                 >
+                  <BatIcon size={18} />
                   <span className="half-label">Weitschlag</span>
-                  <span className="half-count">
-                    {player.points.weitschlagpunkt}
-                  </span>
+                  <span className="half-value">+{weitVal}</span>
                 </button>
               )}
 
@@ -129,8 +137,9 @@ export default function PlayerCard({
                 disabled={!player.hasHit}
                 onClick={() => onScore('laufpunkt')}
               >
+                <PointIcon id="laufpunkt" size={18} />
                 <span className="half-label">Laufpunkt</span>
-                <span className="half-count">{player.points.laufpunkt}</span>
+                <span className="half-value">+{laufVal}</span>
               </button>
             </>
           ) : (
@@ -141,8 +150,9 @@ export default function PlayerCard({
                 disabled={!fangAvailable}
                 onClick={() => onScore('fangpunkt')}
               >
+                <PointIcon id="fangpunkt" size={18} />
                 <span className="half-label">Fangpunkt</span>
-                <span className="half-count">{player.points.fangpunkt}</span>
+                <span className="half-value">+{fangVal}</span>
               </button>
 
               {/* Abwurfpunkt – ab dem ersten Schlag; löst Rollenwechsel aus */}
@@ -151,13 +161,14 @@ export default function PlayerCard({
                 disabled={!abwurfAvailable}
                 onClick={() => onScore('abwurfpunkt')}
               >
+                <PointIcon id="abwurfpunkt" size={18} />
                 <span className="half-label">
-                  Abwurfpunkt
+                  Abwurf
                   <span className="half-switch" aria-hidden="true">
                     &#8635;
                   </span>
                 </span>
-                <span className="half-count">{player.points.abwurfpunkt}</span>
+                <span className="half-value">+{abwurfVal}</span>
               </button>
             </>
           )}

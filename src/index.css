@@ -1,9 +1,7 @@
 /* ===========================================================================
    Schlagball-Zählapp – Styling
-   Mobil-optimiert (Smartphone-Portrait), klares Farbkonzept:
-     - Angriff      = orange
-     - Verteidigung = blau
-     - Hintergrund  = neutrales Hellgrau
+   Mobil-optimiert (Smartphone-Portrait). Team-Farben werden inline aus dem
+   gewählten Team gesetzt; an dieser Stelle nur neutrale Basisfarben.
    =========================================================================== */
 
 :root {
@@ -14,19 +12,18 @@
   --text-muted: #6b7280;
   --border: #dce0e7;
 
-  /* Angriff */
-  --attack: #f97316;
-  --attack-strong: #ea580c;
-  --attack-soft: #fff3e8;
-
-  /* Verteidigung */
-  --defense: #3b82f6;
-  --defense-strong: #2563eb;
-  --defense-soft: #ebf2ff;
-
+  /* Neutrale Akzente (Aktion „Geschlagen", Steuer-Buttons). */
   --primary: #1f2733;
   --danger: #dc2626;
   --win: #15803d;
+
+  /* Rolle: nur als zusätzliches Signal, nicht mehr für Team-Identität. */
+  --attack: #f97316;
+  --attack-strong: #c2410c;
+  --attack-soft: #ffedd5;
+  --defense: #3b82f6;
+  --defense-strong: #1d4ed8;
+  --defense-soft: #dbeafe;
 
   --radius: 18px;
   --radius-sm: 12px;
@@ -76,6 +73,11 @@ button:focus-visible {
 
 input:focus-visible {
   outline: none;
+}
+
+svg {
+  flex-shrink: 0;
+  vertical-align: middle;
 }
 
 /* --- App-Hülle: zentriert, Smartphone-Breite ------------------------------ */
@@ -133,7 +135,6 @@ input:focus-visible {
   font-size: 15px;
 }
 
-/* --- Kurzerklärung auf dem Startbildschirm ------------------------------- */
 .setup-intro {
   padding: 16px 18px;
   background: var(--surface);
@@ -170,7 +171,7 @@ input:focus-visible {
   width: 5px;
   height: 5px;
   border-radius: 50%;
-  background: var(--attack);
+  background: var(--primary);
 }
 
 .setup-intro strong {
@@ -221,6 +222,58 @@ input:focus-visible {
   background: var(--surface);
 }
 
+/* --- Farbauswahl pro Team ------------------------------------------------ */
+.color-choice {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.color-swatch {
+  position: relative;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  border: 3px solid transparent;
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.4);
+  transition: transform 0.07s, box-shadow 0.12s;
+}
+
+.color-swatch:active {
+  transform: scale(0.94);
+}
+
+.color-swatch.selected {
+  border-color: var(--text);
+  box-shadow:
+    inset 0 0 0 2px rgba(255, 255, 255, 0.55),
+    0 0 0 3px rgba(31, 39, 51, 0.18);
+}
+
+.color-check {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  font-weight: 800;
+  color: currentColor;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+}
+
+.color-summary {
+  margin-top: -2px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.color-clash {
+  font-weight: 600;
+  color: var(--danger);
+}
+
+/* --- Wer greift zuerst an? ----------------------------------------------- */
 .role-choice {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -231,12 +284,12 @@ input:focus-visible {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 5px;
-  padding: 16px 8px;
+  gap: 6px;
+  padding: 14px 8px;
   border: 2px solid var(--border);
   border-radius: var(--radius-sm);
   background: var(--surface-2);
-  transition: border-color 0.15s, background 0.15s, transform 0.07s;
+  transition: transform 0.07s, filter 0.12s;
 }
 
 .role-choice-btn:active {
@@ -251,27 +304,12 @@ input:focus-visible {
 }
 
 .rc-role {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   font-size: 11px;
   font-weight: 800;
   letter-spacing: 0.07em;
-}
-
-.role-choice-btn.attack {
-  border-color: var(--attack);
-  background: var(--attack-soft);
-}
-
-.role-choice-btn.attack .rc-role {
-  color: var(--attack-strong);
-}
-
-.role-choice-btn.defense {
-  border-color: var(--defense);
-  background: var(--defense-soft);
-}
-
-.role-choice-btn.defense .rc-role {
-  color: var(--defense-strong);
 }
 
 /* --- Stepper (Spieldauer) ------------------------------------------------- */
@@ -339,6 +377,16 @@ input:focus-visible {
   filter: brightness(1.15);
 }
 
+.primary-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.primary-btn:disabled:active {
+  transform: none;
+  filter: none;
+}
+
 .link-btn {
   align-self: center;
   padding: 10px 14px;
@@ -365,6 +413,14 @@ input:focus-visible {
   transform: scale(0.98);
 }
 
+.setup-warning {
+  margin-top: -10px;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--danger);
+}
+
 /* ===========================================================================
    Spiel-Screen Grundlayout
    =========================================================================== */
@@ -375,23 +431,29 @@ input:focus-visible {
   min-height: 0;
 }
 
-/* --- Scoreboard (Kopf) ---------------------------------------------------- */
+/* --- Scoreboard (Kopf, mit integriertem Timer) --------------------------- */
 .scoreboard {
   flex-shrink: 0;
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
   align-items: stretch;
   background: var(--surface);
   border-bottom: 1px solid var(--border);
 }
 
 .sb-team {
-  flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 2px;
-  padding: 9px 6px 10px;
+  padding: 10px 8px 12px;
   min-width: 0;
+}
+
+.sb-color-dot {
+  width: 18px;
+  height: 6px;
+  border-radius: 3px;
 }
 
 .sb-name {
@@ -400,138 +462,87 @@ input:focus-visible {
   text-overflow: ellipsis;
   white-space: nowrap;
   font-size: 13px;
-  font-weight: 700;
-  color: var(--text-muted);
+  font-weight: 800;
+  letter-spacing: 0.02em;
 }
 
 .sb-score {
-  font-size: 38px;
+  font-size: 36px;
   font-weight: 800;
   line-height: 1;
 }
 
-.sb-role {
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-}
-
-.sb-team.attack .sb-score,
-.sb-team.attack .sb-role {
-  color: var(--attack-strong);
-}
-
-.sb-team.defense .sb-score,
-.sb-team.defense .sb-role {
-  color: var(--defense-strong);
-}
-
-.sb-mid {
+.sb-timer {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 2px;
-  padding: 0 6px;
+  min-width: 120px;
+  padding: 8px 14px 10px;
+  background: transparent;
+  border-left: 1px solid var(--border);
+  border-right: 1px solid var(--border);
+  transition: background 0.15s;
 }
 
-.sb-mid-title {
+.sb-timer:active:not(:disabled) {
+  background: var(--surface-2);
+}
+
+.sb-timer:disabled {
+  cursor: default;
+}
+
+.sb-timer-label {
   font-size: 9px;
   font-weight: 800;
   letter-spacing: 0.12em;
   color: var(--text-muted);
 }
 
-.sb-colon {
-  font-size: 26px;
+.sb-timer-display {
+  font-size: 28px;
   font-weight: 800;
-  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
   line-height: 1;
 }
 
-/* --- Timer-Leiste -------------------------------------------------------- */
-.timer-bar {
-  flex-shrink: 0;
-  display: flex;
+.sb-timer-hint {
+  display: inline-flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  padding: 8px 13px;
-  background: var(--surface);
-  border-bottom: 1px solid var(--border);
-}
-
-.timer-clock {
-  display: flex;
-  flex-direction: column;
-  line-height: 1.05;
-}
-
-.timer-label {
-  font-size: 9px;
+  gap: 3px;
+  font-size: 11px;
   font-weight: 800;
-  letter-spacing: 0.11em;
+  letter-spacing: 0.06em;
   color: var(--text-muted);
+  text-transform: uppercase;
 }
 
-.timer-display {
-  font-size: 27px;
-  font-weight: 800;
-  font-variant-numeric: tabular-nums;
-}
-
-.timer-bar.running .timer-display {
+.sb-timer.running .sb-timer-display {
   color: var(--win);
 }
 
-.timer-bar.low .timer-display {
+.sb-timer.running .sb-timer-hint {
+  color: var(--win);
+}
+
+.sb-timer.low .sb-timer-display {
   color: var(--danger);
   animation: timer-pulse 1s ease-in-out infinite;
 }
 
-.timer-bar.expired {
+.sb-timer.low .sb-timer-hint {
+  color: var(--danger);
+}
+
+.sb-timer.expired {
   background: #fdecec;
-  border-bottom-color: #f4b4b4;
 }
 
-.timer-bar.expired .timer-display {
+.sb-timer.expired .sb-timer-display,
+.sb-timer.expired .sb-timer-hint {
   color: var(--danger);
-  font-size: 21px;
-  letter-spacing: 0.02em;
-}
-
-.timer-bar.expired .timer-label {
-  color: var(--danger);
-}
-
-.timer-controls {
-  display: flex;
-  gap: 8px;
-}
-
-.timer-btn {
-  padding: 10px 18px;
-  border: 2px solid var(--border);
-  border-radius: 10px;
-  background: var(--surface-2);
-  color: var(--text);
-  font-size: 14px;
-  font-weight: 700;
-  transition: transform 0.07s;
-}
-
-.timer-btn.primary {
-  background: var(--primary);
-  border-color: var(--primary);
-  color: #fff;
-}
-
-.timer-btn:active {
-  transform: scale(0.96);
-}
-
-.timer-btn:disabled {
-  opacity: 0.4;
 }
 
 @keyframes timer-pulse {
@@ -540,11 +551,59 @@ input:focus-visible {
     opacity: 1;
   }
   50% {
-    opacity: 0.4;
+    opacity: 0.45;
   }
 }
 
-/* --- Scrollbarer Inhalt --------------------------------------------------- */
+/* --- Banner für Zeit abgelaufen / Bearbeiten ----------------------------- */
+.time-up-bar {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 9px 14px;
+  background: #fef2f2;
+  border-bottom: 1px solid #f4b4b4;
+}
+
+.time-up-title {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--danger);
+  letter-spacing: 0.02em;
+}
+
+.time-up-sub {
+  font-size: 12px;
+  color: #7f1d1d;
+  line-height: 1.35;
+}
+
+.edit-bar {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 9px 14px;
+  background: #ecfdf5;
+  border-bottom: 1px solid #a7f3d0;
+}
+
+.edit-bar-title {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--win);
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.edit-bar-sub {
+  font-size: 12px;
+  color: #166534;
+  line-height: 1.35;
+}
+
+/* --- Scrollbarer Spiel-Inhalt -------------------------------------------- */
 .game-body {
   flex: 1;
   min-height: 0;
@@ -553,7 +612,7 @@ input:focus-visible {
   display: flex;
   flex-direction: column;
   gap: 13px;
-  padding: 13px;
+  padding: 13px 13px 18px;
 }
 
 .panels {
@@ -578,33 +637,26 @@ input:focus-visible {
   justify-content: space-between;
   gap: 8px;
   padding: 12px 16px;
-  color: #fff;
-  transition: background 0.3s ease;
-}
-
-.panel.attack .panel-banner {
-  background: linear-gradient(135deg, #fb923c, #ea580c);
-}
-
-.panel.defense .panel-banner {
-  background: linear-gradient(135deg, #60a5fa, #2563eb);
 }
 
 .panel-team-name {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: 19px;
+  font-size: 18px;
   font-weight: 800;
   letter-spacing: -0.01em;
 }
 
 .role-badge {
   flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
   padding: 5px 11px;
-  background: rgba(255, 255, 255, 0.26);
+  background: rgba(255, 255, 255, 0.22);
   border-radius: 999px;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 800;
   letter-spacing: 0.07em;
 }
@@ -613,7 +665,6 @@ input:focus-visible {
   padding: 14px 16px 16px;
 }
 
-/* --- Spieler-Karten (Punkte erfassen) ------------------------------------ */
 .panel-empty {
   padding: 16px 8px;
   text-align: center;
@@ -621,6 +672,7 @@ input:focus-visible {
   color: var(--text-muted);
 }
 
+/* --- Spieler-Karten (Punkte erfassen) ------------------------------------ */
 .player-list {
   display: flex;
   flex-direction: column;
@@ -670,6 +722,7 @@ input:focus-visible {
   font-size: 12px;
   font-weight: 800;
   color: #fff;
+  background: var(--primary);
 }
 
 .player-card.attack .player-number {
@@ -716,13 +769,13 @@ input:focus-visible {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 1px;
-  min-height: 46px;
-  padding: 6px;
+  gap: 2px;
+  min-height: 56px;
+  padding: 7px 6px;
   transition: filter 0.1s, transform 0.06s;
 }
 
-.player-half:active {
+.player-half:active:not(:disabled) {
   filter: brightness(1.12);
   transform: scale(0.97);
 }
@@ -731,13 +784,16 @@ input:focus-visible {
   display: flex;
   align-items: center;
   gap: 3px;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
 }
 
-.half-count {
-  font-size: 19px;
+.half-value {
+  font-size: 14px;
   font-weight: 800;
+  letter-spacing: 0.02em;
 }
 
 .half-switch {
@@ -772,97 +828,160 @@ input:focus-visible {
   color: #ffffff;
 }
 
-.half-sub {
-  font-size: 10px;
-  font-weight: 700;
-  opacity: 0.8;
-}
-
-/* Gesperrte Hälfte: ausgegraut und nicht antippbar (Punkt aktuell nicht erlaubt) */
+/* Gesperrte Hälfte: ausgegraut und nicht antippbar */
 .player-half:disabled {
   background: #e6e8ec;
   color: #9aa1ad;
   cursor: not-allowed;
 }
 
-/* --- Punkte-Aufschlüsselung (ein-/ausklappbar) --------------------------- */
-.breakdown-toggle {
+/* ===========================================================================
+   Bearbeitungs-Modus (in der Spielerkarte)
+   =========================================================================== */
+.player-card.edit {
+  border-color: var(--win);
+  box-shadow: 0 0 0 1.5px rgba(21, 128, 61, 0.35), var(--shadow-sm);
+}
+
+.player-edit {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  background: var(--border);
+}
+
+.edit-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 7px 11px;
+  background: var(--surface);
+}
+
+.edit-row.attack {
+  background: var(--attack-soft);
+}
+
+.edit-row.defense {
+  background: var(--defense-soft);
+}
+
+.edit-label {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.edit-row.attack .edit-label {
+  color: var(--attack-strong);
+}
+
+.edit-row.defense .edit-label {
+  color: var(--defense-strong);
+}
+
+.edit-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.edit-btn {
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  width: 100%;
-  margin-top: 10px;
-  padding: 8px;
+  width: 38px;
+  height: 38px;
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 19px;
+  font-weight: 800;
+  transition: transform 0.07s, filter 0.12s;
+}
+
+.edit-btn:active:not(:disabled) {
+  transform: scale(0.94);
+  filter: brightness(0.96);
+}
+
+.edit-btn.plus {
+  background: var(--win);
+  border-color: var(--win);
+  color: #fff;
+}
+
+.edit-btn.minus {
   background: var(--surface-2);
+  color: var(--danger);
+  border-color: #fecaca;
+}
+
+.edit-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.edit-count {
+  min-width: 26px;
+  text-align: center;
+  font-size: 17px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ===========================================================================
+   Nächster Schläger (feste Schlagreihenfolge)
+   =========================================================================== */
+.player-card.next-batter {
+  box-shadow: 0 0 0 3px var(--win);
+}
+
+.next-badge {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 8px;
+  background: var(--win);
+  color: #fff;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+/* ===========================================================================
+   Team-Punktarten (gemeinsamer Toggle, im Verlauf-Drawer)
+   =========================================================================== */
+.team-breakdown {
+  background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 9px;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.03em;
-  color: var(--text-muted);
-  transition: background 0.12s;
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.breakdown-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  padding: 13px 16px;
+  font-size: 14px;
+  font-weight: 800;
+  background: var(--surface-2);
 }
 
 .breakdown-toggle:active {
   background: var(--border);
-}
-
-.breakdown {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 7px;
-  margin-top: 8px;
-}
-
-.breakdown-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 6px;
-  padding: 8px 11px;
-  background: var(--surface-2);
-  border: 1px solid var(--border);
-  border-radius: 9px;
-}
-
-.breakdown-label {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--text-muted);
-}
-
-.breakdown-value {
-  font-size: 16px;
-  font-weight: 800;
-}
-
-.breakdown-item.attack .breakdown-value {
-  color: var(--attack-strong);
-}
-
-.breakdown-item.defense .breakdown-value {
-  color: var(--defense-strong);
-}
-
-/* ===========================================================================
-   Verlauf (History)
-   =========================================================================== */
-.history {
-  background: var(--surface);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
-  overflow: hidden;
-}
-
-.history-toggle {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  padding: 14px 16px;
-  font-size: 15px;
-  font-weight: 700;
 }
 
 .chevron {
@@ -875,18 +994,103 @@ input:focus-visible {
   transform: rotate(180deg);
 }
 
+.breakdown-table {
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid var(--border);
+}
+
+.breakdown-head {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 6px;
+  padding: 8px 12px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+
+.bh-spacer {
+  flex: 1;
+}
+
+.bh-team {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.bh-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.breakdown-row {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 12px;
+  border-bottom: 1px solid var(--surface-2);
+}
+
+.breakdown-row:last-child {
+  border-bottom: none;
+}
+
+.br-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.br-value {
+  min-width: 60px;
+  text-align: center;
+  font-size: 15px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ===========================================================================
+   Verlauf (im Drawer und in der Detailansicht)
+   =========================================================================== */
+.history-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.history-section-title {
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  padding: 0 2px;
+}
+
 .history-list {
   list-style: none;
-  max-height: 244px;
-  overflow-y: auto;
-  border-top: 1px solid var(--border);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
 }
 
 .history-item {
   display: flex;
   align-items: center;
   gap: 9px;
-  padding: 10px 16px;
+  padding: 10px 14px;
   border-bottom: 1px solid var(--surface-2);
   font-size: 13px;
 }
@@ -901,15 +1105,32 @@ input:focus-visible {
   font-variant-numeric: tabular-nums;
 }
 
-.hi-team {
-  font-weight: 700;
+.hi-main {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+  gap: 1px;
+}
+
+.hi-player {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.hi-team {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
 }
 
 .hi-point {
-  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   flex-shrink: 0;
   padding: 3px 10px;
   border-radius: 999px;
@@ -937,14 +1158,15 @@ input:focus-visible {
   letter-spacing: 0.03em;
 }
 
-/* Verlauf-Eintrag für einen Schlag ("Geschlagen") – neutral statt Punktfarbe */
 .hi-action {
   flex-shrink: 0;
-  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   padding: 3px 10px;
   background: var(--surface-2);
   border: 1px solid var(--border);
-  color: var(--text-muted);
+  color: var(--text);
   border-radius: 999px;
   font-weight: 700;
 }
@@ -956,17 +1178,186 @@ input:focus-visible {
   font-size: 14px;
 }
 
+.history-item.edit {
+  background: #ecfdf5;
+}
+
+.hi-edit {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+.hi-edit-tag {
+  padding: 2px 8px;
+  background: var(--win);
+  color: #fff;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.hi-edit-detail {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--text);
+}
+
+/* ===========================================================================
+   Verlauf-Drawer (Bottom-Sheet, immer per Knopf erreichbar)
+   =========================================================================== */
+.drawer-backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 90;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: rgba(15, 23, 42, 0.55);
+  animation: modal-fade-in 0.18s ease-out;
+}
+
+.drawer {
+  width: 100%;
+  max-height: 86%;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+  border-top-left-radius: 22px;
+  border-top-right-radius: 22px;
+  box-shadow: 0 -20px 50px rgba(0, 0, 0, 0.45);
+  animation: drawer-slide-up 0.25s cubic-bezier(0.2, 0.9, 0.3, 1.05);
+}
+
+.drawer-handle {
+  align-self: center;
+  width: 44px;
+  height: 5px;
+  margin-top: 8px;
+  border-radius: 999px;
+  background: rgba(31, 39, 51, 0.18);
+}
+
+.drawer-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 16px 12px;
+}
+
+.drawer-title {
+  font-size: 17px;
+  font-weight: 800;
+}
+
+.drawer-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text);
+}
+
+.drawer-close:active {
+  background: var(--surface-2);
+}
+
+.drawer-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 4px 14px 22px;
+}
+
+@keyframes drawer-slide-up {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
 /* ===========================================================================
    Kontrollleiste (Fuß)
    =========================================================================== */
 .controls {
   flex-shrink: 0;
   display: flex;
-  gap: 10px;
-  padding: 12px 13px;
-  padding-bottom: calc(12px + env(safe-area-inset-bottom));
+  align-items: stretch;
+  gap: 8px;
+  padding: 10px 12px;
+  padding-bottom: calc(10px + env(safe-area-inset-bottom));
   background: var(--surface);
   border-top: 1px solid var(--border);
+}
+
+.icon-btn {
+  position: relative;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border: 2px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  color: var(--text);
+  transition: transform 0.07s, filter 0.12s;
+}
+
+.icon-btn:active:not(:disabled) {
+  transform: scale(0.95);
+}
+
+.icon-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.icon-btn.active {
+  background: var(--win);
+  border-color: var(--win);
+  color: #fff;
+}
+
+.icon-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--primary);
+  color: #fff;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 800;
+  border: 2px solid var(--surface);
 }
 
 .control-btn {
@@ -975,31 +1366,16 @@ input:focus-visible {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 16px;
+  padding: 12px 14px;
   border: 2px solid var(--border);
   border-radius: var(--radius-sm);
-  font-size: 16px;
-  font-weight: 700;
+  font-size: 15px;
+  font-weight: 800;
   transition: transform 0.07s, opacity 0.12s;
 }
 
-.control-btn:active {
+.control-btn:active:not(:disabled) {
   transform: scale(0.97);
-}
-
-.control-icon {
-  font-size: 18px;
-  line-height: 1;
-}
-
-.control-btn.undo {
-  background: var(--surface-2);
-  color: var(--text);
-}
-
-.control-btn.undo:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
 }
 
 .control-btn.end {
@@ -1008,37 +1384,16 @@ input:focus-visible {
   color: #fff;
 }
 
-.control-btn.edit {
-  background: var(--surface-2);
-  color: var(--text);
-}
-
-.control-btn.edit.active {
-  background: var(--win);
-  border-color: var(--win);
-  color: #fff;
-}
-
-/* Im Bearbeiten-Modus die Spielende-Taste etwas zurückhaltender. */
-.controls > .control-btn {
-  padding: 14px 10px;
-  font-size: 14px;
-}
-
-.controls > .control-btn .control-icon {
-  font-size: 16px;
-}
-
 /* ===========================================================================
-   Rollenwechsel-Hinweis (Toast)
+   Toasts (Rollenwechsel, Pause, Zeit abgelaufen)
    =========================================================================== */
 .toast {
   position: absolute;
-  top: 132px;
+  top: 96px;
   left: 50%;
   z-index: 50;
   max-width: calc(100% - 28px);
-  padding: 13px 20px;
+  padding: 11px 18px;
   background: var(--primary);
   color: #fff;
   border-radius: 999px;
@@ -1057,6 +1412,100 @@ input:focus-visible {
   to {
     opacity: 1;
     transform: translate(-50%, 0) scale(1);
+  }
+}
+
+/* ===========================================================================
+   Bestätigungs-Dialog (ersetzt window.confirm – funktioniert auch am Handy)
+   =========================================================================== */
+.modal-backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 22px;
+  background: rgba(15, 23, 42, 0.6);
+  animation: modal-fade-in 0.18s ease-out;
+}
+
+.modal {
+  width: 100%;
+  max-width: 380px;
+  padding: 22px 22px 18px;
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.4);
+  animation: modal-pop-in 0.22s cubic-bezier(0.2, 0.9, 0.3, 1.15);
+}
+
+.modal-title {
+  font-size: 19px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+.modal-message {
+  margin-top: 9px;
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--text-muted);
+}
+
+.modal-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.modal-btn {
+  flex: 1;
+  padding: 14px;
+  border: 2px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 15px;
+  font-weight: 800;
+  transition: transform 0.07s, filter 0.12s;
+}
+
+.modal-btn:active {
+  transform: scale(0.97);
+}
+
+.modal-btn.cancel {
+  background: var(--surface-2);
+  color: var(--text);
+}
+
+.modal-btn.confirm {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #fff;
+}
+
+.modal-btn.confirm.danger {
+  background: var(--danger);
+  border-color: var(--danger);
+}
+
+@keyframes modal-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes modal-pop-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
   }
 }
 
@@ -1153,20 +1602,31 @@ input:focus-visible {
 }
 
 .gc-team {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   font-size: 15px;
-  font-weight: 700;
+  font-weight: 800;
 }
 
 .gc-team.right {
-  text-align: right;
+  justify-content: flex-end;
+}
+
+.gc-dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
 }
 
 .gc-team.winner {
-  color: var(--win);
+  font-weight: 900;
 }
 
 .gc-score {
@@ -1272,10 +1732,10 @@ input:focus-visible {
 
 .detail-result {
   display: flex;
-  align-items: flex-start;
+  align-items: stretch;
   justify-content: center;
-  gap: 14px;
-  padding: 20px 14px;
+  gap: 10px;
+  padding: 18px 14px;
   background: var(--surface);
   border-radius: var(--radius);
   box-shadow: var(--shadow);
@@ -1288,6 +1748,14 @@ input:focus-visible {
   align-items: center;
   gap: 6px;
   min-width: 0;
+  padding: 14px 10px;
+  border-radius: var(--radius-sm);
+}
+
+.dr-color {
+  width: 24px;
+  height: 6px;
+  border-radius: 3px;
 }
 
 .dr-name {
@@ -1296,33 +1764,27 @@ input:focus-visible {
   text-overflow: ellipsis;
   white-space: nowrap;
   font-size: 14px;
-  font-weight: 700;
-  color: var(--text-muted);
+  font-weight: 800;
 }
 
 .dr-score {
-  font-size: 52px;
+  font-size: 48px;
   font-weight: 800;
   line-height: 1;
 }
 
-.dr-team.winner .dr-name {
-  color: var(--text);
-}
-
-.dr-team.winner .dr-score {
-  color: var(--win);
+.dr-team.winner {
+  box-shadow: 0 0 0 2px var(--win);
 }
 
 .dr-sep {
-  font-size: 30px;
+  align-self: center;
+  font-size: 26px;
   font-weight: 800;
   color: var(--text-muted);
-  padding-top: 22px;
 }
 
 .detail-outcome {
-  margin-top: -4px;
   text-align: center;
   font-size: 16px;
   font-weight: 800;
@@ -1366,8 +1828,116 @@ input:focus-visible {
 }
 
 .detail-team-stats h3 {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   font-size: 15px;
   font-weight: 800;
+}
+
+.dts-dot {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+
+.detail-history {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.detail-history h3 {
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  padding: 0 2px;
+}
+
+.detail-players {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.detail-player {
+  padding: 9px 11px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
+.dp-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dp-num {
+  flex-shrink: 0;
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--text-muted);
+}
+
+.dp-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.dp-total {
+  flex-shrink: 0;
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.dp-types {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 5px;
+  margin-top: 7px;
+}
+
+.dp-type {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 5px 2px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.dp-type-icon {
+  display: inline-flex;
+}
+
+.dp-type strong {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--text);
+}
+
+.dp-type.attack strong {
+  color: var(--attack-strong);
+}
+
+.dp-type.defense strong {
+  color: var(--defense-strong);
 }
 
 /* ===========================================================================
@@ -1450,13 +2020,6 @@ input:focus-visible {
   gap: 8px;
 }
 
-.pe-num-input {
-  flex-shrink: 0;
-  width: 68px;
-  text-align: center;
-  padding: 12px 6px;
-}
-
 .pe-name-input {
   flex: 1;
   min-width: 0;
@@ -1480,433 +2043,6 @@ input:focus-visible {
 
 .pe-add-btn:disabled {
   opacity: 0.35;
-}
-
-.primary-btn:disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
-}
-
-.primary-btn:disabled:active {
-  transform: none;
-  filter: none;
-}
-
-.setup-warning {
-  margin-top: -10px;
-  text-align: center;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--danger);
-}
-
-/* ===========================================================================
-   Verlauf – Spielerzuordnung
-   =========================================================================== */
-.hi-main {
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-  min-width: 0;
-  gap: 1px;
-}
-
-.hi-player {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-size: 13px;
-  font-weight: 700;
-}
-
-.hi-team {
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--text-muted);
-}
-
-/* ===========================================================================
-   Detailansicht – Punkte je Spieler
-   =========================================================================== */
-.detail-players {
-  list-style: none;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-top: 10px;
-}
-
-.detail-player {
-  padding: 9px 11px;
-  background: var(--surface-2);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-}
-
-.dp-top {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.dp-num {
-  flex-shrink: 0;
-  font-size: 12px;
-  font-weight: 800;
-  color: var(--text-muted);
-}
-
-.dp-name {
-  flex: 1;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-size: 14px;
-  font-weight: 700;
-}
-
-.dp-total {
-  flex-shrink: 0;
-  font-size: 15px;
-  font-weight: 800;
-}
-
-.dp-types {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 5px;
-  margin-top: 7px;
-}
-
-.dp-type {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1px;
-  padding: 4px 2px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 7px;
-  font-size: 10px;
-  font-weight: 700;
-  color: var(--text-muted);
-}
-
-.dp-type strong {
-  font-size: 13px;
-  font-weight: 800;
-  color: var(--text);
-}
-
-.dp-type.attack strong {
-  color: var(--attack-strong);
-}
-
-.dp-type.defense strong {
-  color: var(--defense-strong);
-}
-
-/* ===========================================================================
-   Nächster Schläger (feste Schlagreihenfolge)
-   =========================================================================== */
-.player-card.next-batter {
-  box-shadow: 0 0 0 3px var(--win);
-}
-
-.next-badge {
-  flex-shrink: 0;
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
-  padding: 2px 8px;
-  background: var(--win);
-  color: #fff;
-  border-radius: 999px;
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-}
-
-/* ===========================================================================
-   Bestätigungs-Dialog (ersetzt window.confirm – funktioniert auch am Handy)
-   =========================================================================== */
-.modal-backdrop {
-  position: absolute;
-  inset: 0;
-  z-index: 100;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 22px;
-  background: rgba(15, 23, 42, 0.6);
-  animation: modal-fade-in 0.18s ease-out;
-}
-
-.modal {
-  width: 100%;
-  max-width: 380px;
-  padding: 22px 22px 18px;
-  background: var(--surface);
-  border-radius: var(--radius);
-  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.4);
-  animation: modal-pop-in 0.22s cubic-bezier(0.2, 0.9, 0.3, 1.15);
-}
-
-.modal-title {
-  font-size: 19px;
-  font-weight: 800;
-  letter-spacing: -0.01em;
-}
-
-.modal-message {
-  margin-top: 9px;
-  font-size: 14px;
-  line-height: 1.45;
-  color: var(--text-muted);
-}
-
-.modal-actions {
-  display: flex;
-  gap: 10px;
-  margin-top: 20px;
-}
-
-.modal-btn {
-  flex: 1;
-  padding: 14px;
-  border: 2px solid var(--border);
-  border-radius: var(--radius-sm);
-  font-size: 15px;
-  font-weight: 800;
-  transition: transform 0.07s, filter 0.12s;
-}
-
-.modal-btn:active {
-  transform: scale(0.97);
-}
-
-.modal-btn.cancel {
-  background: var(--surface-2);
-  color: var(--text);
-}
-
-.modal-btn.confirm {
-  background: var(--primary);
-  border-color: var(--primary);
-  color: #fff;
-}
-
-.modal-btn.confirm.danger {
-  background: var(--danger);
-  border-color: var(--danger);
-}
-
-@keyframes modal-fade-in {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-@keyframes modal-pop-in {
-  from {
-    opacity: 0;
-    transform: translateY(8px) scale(0.96);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
-/* ===========================================================================
-   Zeit-abgelaufen-Banner (Spiel läuft weiter, bis manuell beendet)
-   =========================================================================== */
-.time-up-bar {
-  flex-shrink: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  padding: 10px 14px;
-  background: #fef2f2;
-  border-bottom: 1px solid #f4b4b4;
-}
-
-.time-up-title {
-  font-size: 14px;
-  font-weight: 800;
-  color: var(--danger);
-  letter-spacing: 0.02em;
-}
-
-.time-up-sub {
-  font-size: 12px;
-  color: #7f1d1d;
-  line-height: 1.35;
-}
-
-.toast.time-up-toast {
-  background: var(--danger);
-}
-
-/* ===========================================================================
-   Bearbeitungs-Modus
-   =========================================================================== */
-.edit-bar {
-  flex-shrink: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  padding: 9px 14px;
-  background: #ecfdf5;
-  border-bottom: 1px solid #a7f3d0;
-}
-
-.edit-bar-title {
-  font-size: 13px;
-  font-weight: 800;
-  color: var(--win);
-  letter-spacing: 0.03em;
-  text-transform: uppercase;
-}
-
-.edit-bar-sub {
-  font-size: 12px;
-  color: #166534;
-  line-height: 1.35;
-}
-
-.player-card.edit {
-  border-color: var(--win);
-  box-shadow: 0 0 0 1.5px rgba(21, 128, 61, 0.35), var(--shadow-sm);
-}
-
-.player-edit {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  background: var(--border);
-}
-
-.edit-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  padding: 7px 11px;
-  background: var(--surface);
-}
-
-.edit-row.attack {
-  background: var(--attack-soft);
-}
-
-.edit-row.defense {
-  background: var(--defense-soft);
-}
-
-.edit-label {
-  flex: 1;
-  font-size: 13px;
-  font-weight: 700;
-}
-
-.edit-row.attack .edit-label {
-  color: var(--attack-strong);
-}
-
-.edit-row.defense .edit-label {
-  color: var(--defense-strong);
-}
-
-.edit-controls {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.edit-btn {
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 38px;
-  height: 38px;
-  border: 1.5px solid var(--border);
-  border-radius: 10px;
-  background: var(--surface);
-  color: var(--text);
-  font-size: 19px;
-  font-weight: 800;
-  transition: transform 0.07s, filter 0.12s;
-}
-
-.edit-btn:active {
-  transform: scale(0.94);
-  filter: brightness(0.96);
-}
-
-.edit-btn.plus {
-  background: var(--win);
-  border-color: var(--win);
-  color: #fff;
-}
-
-.edit-btn.minus {
-  background: var(--surface-2);
-  color: var(--danger);
-  border-color: #fecaca;
-}
-
-.edit-btn:disabled {
-  opacity: 0.35;
-  cursor: not-allowed;
-}
-
-.edit-count {
-  min-width: 26px;
-  text-align: center;
-  font-size: 17px;
-  font-weight: 800;
-  font-variant-numeric: tabular-nums;
-}
-
-/* Verlauf-Eintrag für eine Korrektur (Bearbeitungs-Modus). */
-.history-item.edit {
-  background: #ecfdf5;
-}
-
-.hi-edit {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin-left: auto;
-  flex-shrink: 0;
-}
-
-.hi-edit-tag {
-  padding: 2px 8px;
-  background: var(--win);
-  color: #fff;
-  border-radius: 999px;
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-}
-
-.hi-edit-detail {
-  padding: 3px 10px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  font-size: 12px;
-  font-weight: 800;
-  color: var(--text);
 }
 
 /* ===========================================================================

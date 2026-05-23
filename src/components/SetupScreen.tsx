@@ -1,10 +1,15 @@
 import { useState } from 'react';
 import type { Dispatch } from 'react';
 import type { GameAction } from '../gameReducer';
-import { MAX_PLAYERS_PER_TEAM } from '../types';
-import type { TeamId } from '../types';
+import {
+  MAX_PLAYERS_PER_TEAM,
+  TEAM_COLORS,
+  TEAM_COLOR_BY_ID,
+} from '../types';
+import type { TeamColorId, TeamId } from '../types';
 import PlayerEditor from './PlayerEditor';
 import type { DraftPlayer } from './PlayerEditor';
+import { AttackIcon, DefenseIcon } from './icons';
 
 interface SetupScreenProps {
   dispatch: Dispatch<GameAction>;
@@ -19,8 +24,8 @@ function makeDraftId(): string {
 }
 
 /**
- * Startbildschirm: Teamnamen, Spieler (Name + Nummer, bis zu 12 pro Team),
- * Startaufstellung und Timer-Länge.
+ * Startbildschirm: Teamnamen, Team-Farbe, Spieler (Name + Nummer, bis zu
+ * 12 pro Team), Startaufstellung und Timer-Länge.
  */
 export default function SetupScreen({
   dispatch,
@@ -28,6 +33,8 @@ export default function SetupScreen({
 }: SetupScreenProps) {
   const [teamAName, setTeamAName] = useState('Team 1');
   const [teamBName, setTeamBName] = useState('Team 2');
+  const [teamAColor, setTeamAColor] = useState<TeamColorId>('blue');
+  const [teamBColor, setTeamBColor] = useState<TeamColorId>('red');
   const [attackingTeam, setAttackingTeam] = useState<TeamId>('A');
   const [timerMinutes, setTimerMinutes] = useState(30);
   const [playersA, setPlayersA] = useState<DraftPlayer[]>([]);
@@ -66,6 +73,8 @@ export default function SetupScreen({
       type: 'START_GAME',
       teamAName,
       teamBName,
+      teamAColor,
+      teamBColor,
       attackingTeam,
       timerMinutes,
       playersA: playersA.map((p) => ({ name: p.name })),
@@ -83,78 +92,66 @@ export default function SetupScreen({
       <div className="setup-intro">
         <h2>So funktioniert's</h2>
         <ul>
-          <li>Teams anlegen und je Spieler Name und Nummer eintragen.</li>
-          <li>Jeder Spieler ist ein Knopf: Ein Angreifer tippt erst <strong>„Geschlagen"</strong>, dann gibt es pro Schlag genau einen <strong>Lauf-</strong> oder <strong>Weitschlagpunkt</strong>.</li>
-          <li>Die Verteidigung macht <strong>Fang-</strong> oder <strong>Abwurfpunkte</strong> – der Abwurfpunkt wechselt die Rollen.</li>
-          <li>Läuft der <strong>Timer</strong> ab, wird das Spiel automatisch beendet.</li>
+          <li>Teams anlegen, Farbe wählen und je Spieler den Namen eintragen.</li>
+          <li>
+            Jeder Spieler ist ein Knopf: Ein Angreifer tippt erst{' '}
+            <strong>„Geschlagen"</strong>, dann gibt es pro Schlag genau einen{' '}
+            <strong>Lauf-</strong> oder <strong>Weitschlagpunkt</strong>.
+          </li>
+          <li>
+            Die Verteidigung macht <strong>Fang-</strong> oder{' '}
+            <strong>Abwurfpunkte</strong> – der Abwurfpunkt wechselt die Rollen.
+          </li>
+          <li>
+            Läuft der <strong>Timer</strong> ab, kannst du noch korrigieren und
+            das Spiel manuell beenden.
+          </li>
         </ul>
       </div>
 
-      {/* Team 1 */}
-      <div className="setup-card">
-        <label className="field">
-          <span className="field-label">Name Team 1</span>
-          <input
-            className="text-input"
-            value={teamAName}
-            maxLength={24}
-            onChange={(e) => setTeamAName(e.target.value)}
-            placeholder="Team 1"
-          />
-        </label>
-        <PlayerEditor
-          players={playersA}
-          max={MAX_PLAYERS_PER_TEAM}
-          onAdd={(name) => addPlayer('A', name)}
-          onRemove={(id) => removePlayer('A', id)}
-        />
-      </div>
+      <TeamSetup
+        label="Team 1"
+        name={teamAName}
+        onName={setTeamAName}
+        color={teamAColor}
+        onColor={setTeamAColor}
+        otherColor={teamBColor}
+        players={playersA}
+        onAdd={(n) => addPlayer('A', n)}
+        onRemove={(id) => removePlayer('A', id)}
+      />
 
-      {/* Team 2 */}
-      <div className="setup-card">
-        <label className="field">
-          <span className="field-label">Name Team 2</span>
-          <input
-            className="text-input"
-            value={teamBName}
-            maxLength={24}
-            onChange={(e) => setTeamBName(e.target.value)}
-            placeholder="Team 2"
-          />
-        </label>
-        <PlayerEditor
-          players={playersB}
-          max={MAX_PLAYERS_PER_TEAM}
-          onAdd={(name) => addPlayer('B', name)}
-          onRemove={(id) => removePlayer('B', id)}
-        />
-      </div>
+      <TeamSetup
+        label="Team 2"
+        name={teamBName}
+        onName={setTeamBName}
+        color={teamBColor}
+        onColor={setTeamBColor}
+        otherColor={teamAColor}
+        players={playersB}
+        onAdd={(n) => addPlayer('B', n)}
+        onRemove={(id) => removePlayer('B', id)}
+      />
 
       {/* Spieleinstellungen */}
       <div className="setup-card">
         <div className="field">
           <span className="field-label">Wer greift zuerst an?</span>
           <div className="role-choice">
-            <button
-              type="button"
-              className={`role-choice-btn ${attackingTeam === 'A' ? 'attack' : 'defense'}`}
+            <RoleButton
+              active={attackingTeam === 'A'}
+              role={attackingTeam === 'A' ? 'attack' : 'defense'}
+              name={nameA}
+              color={teamAColor}
               onClick={() => setAttackingTeam('A')}
-            >
-              <span className="rc-name">{nameA}</span>
-              <span className="rc-role">
-                {attackingTeam === 'A' ? 'ANGRIFF' : 'VERTEIDIGUNG'}
-              </span>
-            </button>
-            <button
-              type="button"
-              className={`role-choice-btn ${attackingTeam === 'B' ? 'attack' : 'defense'}`}
+            />
+            <RoleButton
+              active={attackingTeam === 'B'}
+              role={attackingTeam === 'B' ? 'attack' : 'defense'}
+              name={nameB}
+              color={teamBColor}
               onClick={() => setAttackingTeam('B')}
-            >
-              <span className="rc-name">{nameB}</span>
-              <span className="rc-role">
-                {attackingTeam === 'B' ? 'ANGRIFF' : 'VERTEIDIGUNG'}
-              </span>
-            </button>
+            />
           </div>
         </div>
 
@@ -205,5 +202,130 @@ export default function SetupScreen({
         </button>
       )}
     </div>
+  );
+}
+
+interface TeamSetupProps {
+  label: string;
+  name: string;
+  onName: (n: string) => void;
+  color: TeamColorId;
+  onColor: (c: TeamColorId) => void;
+  /** Farbe des anderen Teams – wird als Hinweis markiert, falls identisch
+   *  gewählt wird (technisch erlaubt). */
+  otherColor: TeamColorId;
+  players: DraftPlayer[];
+  onAdd: (name: string) => void;
+  onRemove: (id: string) => void;
+}
+
+function TeamSetup({
+  label,
+  name,
+  onName,
+  color,
+  onColor,
+  otherColor,
+  players,
+  onAdd,
+  onRemove,
+}: TeamSetupProps) {
+  const cfg = TEAM_COLOR_BY_ID[color];
+  const clash = color === otherColor;
+
+  return (
+    <div className="setup-card">
+      <label className="field">
+        <span className="field-label">Name {label}</span>
+        <input
+          className="text-input"
+          value={name}
+          maxLength={24}
+          onChange={(e) => onName(e.target.value)}
+          placeholder={label}
+        />
+      </label>
+
+      <div className="field">
+        <span className="field-label">Team-Farbe</span>
+        <div
+          className="color-choice"
+          role="radiogroup"
+          aria-label={`Farbe ${label}`}
+        >
+          {TEAM_COLORS.map((c) => (
+            <button
+              type="button"
+              key={c.id}
+              role="radio"
+              aria-checked={c.id === color}
+              className={`color-swatch ${c.id === color ? 'selected' : ''}`}
+              style={{ background: c.bg, color: c.fg }}
+              onClick={() => onColor(c.id)}
+              title={c.label}
+            >
+              {c.id === color && (
+                <span className="color-check" aria-hidden="true">
+                  &#10003;
+                </span>
+              )}
+            </button>
+          ))}
+        </div>
+        <span className="color-summary" style={{ color: cfg.strong }}>
+          {cfg.label}
+          {clash && (
+            <span className="color-clash">
+              {' '}
+              – beide Teams haben die gleiche Farbe.
+            </span>
+          )}
+        </span>
+      </div>
+
+      <PlayerEditor
+        players={players}
+        max={MAX_PLAYERS_PER_TEAM}
+        onAdd={onAdd}
+        onRemove={onRemove}
+      />
+    </div>
+  );
+}
+
+interface RoleButtonProps {
+  active: boolean;
+  role: 'attack' | 'defense';
+  name: string;
+  color: TeamColorId;
+  onClick: () => void;
+}
+
+function RoleButton({ active, role, name, color, onClick }: RoleButtonProps) {
+  const cfg = TEAM_COLOR_BY_ID[color];
+  return (
+    <button
+      type="button"
+      className={`role-choice-btn ${active ? 'selected' : ''}`}
+      onClick={onClick}
+      style={{
+        borderColor: cfg.bg,
+        background: active ? cfg.bg : cfg.soft,
+        color: active ? cfg.fg : cfg.strong,
+      }}
+    >
+      <span className="rc-name">{name}</span>
+      <span className="rc-role">
+        {role === 'attack' ? (
+          <>
+            <AttackIcon size={14} /> ANGRIFF
+          </>
+        ) : (
+          <>
+            <DefenseIcon size={14} /> VERTEIDIGUNG
+          </>
+        )}
+      </span>
+    </button>
   );
 }
