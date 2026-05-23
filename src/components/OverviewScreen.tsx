@@ -1,7 +1,12 @@
 import type { Dispatch } from 'react';
 import type { GameAction } from '../gameReducer';
 import type { CompletedGame } from '../types';
-import { POINT_TYPE_BY_ID, TEAM_COLOR_BY_ID, teamTotal } from '../types';
+import {
+  formatClock,
+  POINT_TYPE_BY_ID,
+  TEAM_COLOR_BY_ID,
+  teamTotal,
+} from '../types';
 
 interface OverviewScreenProps {
   games: CompletedGame[];
@@ -23,7 +28,15 @@ function downloadGames(games: CompletedGame[]): void {
   const spiele = games.map((game, index) => {
     const totalA = teamTotal(game.teams.A);
     const totalB = teamTotal(game.teams.B);
-    const verlauf = game.history.map((ev, i) => {
+    type ExportRow = {
+      zeit: string;
+      timestamp: number;
+      team: string;
+      spieler: string;
+      aktion: string;
+    };
+    const rows: ExportRow[] = [];
+    game.history.forEach((ev) => {
       const team = game.teams[ev.teamId];
       const player = team.players.find((p) => p.id === ev.playerId);
       let aktion: string;
@@ -36,14 +49,31 @@ function downloadGames(games: CompletedGame[]): void {
       } else {
         aktion = 'Geschlagen';
       }
-      return {
-        nr: i + 1,
+      rows.push({
         zeit: new Date(ev.timestamp).toLocaleTimeString('de-DE'),
+        timestamp: ev.timestamp,
         team: team.name,
         spieler: player ? `#${player.number} ${player.name}` : 'Unbekannt',
         aktion,
-      };
+      });
     });
+    (game.timerLog ?? []).forEach((te) => {
+      const label =
+        te.kind === 'start'
+          ? 'Timer gestartet'
+          : te.kind === 'pause'
+          ? 'Timer pausiert'
+          : 'Zeit abgelaufen';
+      rows.push({
+        zeit: new Date(te.timestamp).toLocaleTimeString('de-DE'),
+        timestamp: te.timestamp,
+        team: '',
+        spieler: '',
+        aktion: `${label} (Restzeit ${formatClock(te.remainingSec)})`,
+      });
+    });
+    rows.sort((a, b) => a.timestamp - b.timestamp);
+    const verlauf = rows.map((r, i) => ({ nr: i + 1, ...r }));
     return {
       nummer: games.length - index,
       beendet: new Date(game.finishedAt).toLocaleString('de-DE'),

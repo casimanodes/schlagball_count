@@ -159,7 +159,7 @@ export default function GameScreen({ game, dispatch }: GameScreenProps) {
       <Controls
         canUndo={game.history.length > 0}
         editMode={editMode}
-        historyCount={game.history.length}
+        historyCount={game.history.length + (game.timerLog?.length ?? 0)}
         onUndo={() => dispatch({ type: 'UNDO' })}
         onToggleEdit={handleToggleEdit}
         onOpenHistory={() => setHistoryOpen(true)}
@@ -175,6 +175,7 @@ export default function GameScreen({ game, dispatch }: GameScreenProps) {
       <HistoryDrawer
         open={historyOpen}
         history={game.history}
+        timerLog={game.timerLog ?? []}
         teams={game.teams}
         onClose={() => setHistoryOpen(false)}
       />

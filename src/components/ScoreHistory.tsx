@@ -1,26 +1,43 @@
-import { POINT_TYPE_BY_ID } from '../types';
-import type { GameEvent, TeamId, TeamState } from '../types';
-import { BatIcon, PointIcon } from './icons';
+import { formatClock, POINT_TYPE_BY_ID } from '../types';
+import type {
+  GameEvent,
+  TeamId,
+  TeamState,
+  TimerLogEntry,
+} from '../types';
+import { BatIcon, PauseIcon, PlayIcon, PointIcon } from './icons';
 
 interface ScoreHistoryProps {
   history: GameEvent[];
+  timerLog: TimerLogEntry[];
   teams: Record<TeamId, TeamState>;
 }
 
-/**
- * Verlaufsliste aller Ereignisse (neueste zuerst):
- *   - erfasste Punkte mit Spielerzuordnung und passendem Icon
- *   - Schläge ("Geschlagen") mit Baseballschläger-Icon
- *   - nachträgliche Bearbeitungen (+1 / -1 mit Hinweis "Korrektur")
- * Ereignisse, die einen Rollenwechsel ausgelöst haben, sind markiert.
- *
- * Diese Komponente rendert NUR die Liste (ohne Toggle), weil der Verlauf
- * über einen eigenen Drawer-Knopf in den Controls geöffnet wird.
- */
-export default function ScoreHistory({ history, teams }: ScoreHistoryProps) {
-  const events = [...history].reverse();
+type Row =
+  | { kind: 'event'; timestamp: number; data: GameEvent }
+  | { kind: 'timer'; timestamp: number; data: TimerLogEntry };
 
-  if (events.length === 0) {
+/**
+ * Vollständige Verlaufsliste (neueste zuerst). Vereint die Punkt-/Schlag-/
+ * Korrektur-Ereignisse mit dem Timer-Protokoll (Start, Pause, Ablauf), so
+ * dass der Schiedsrichter chronologisch nachvollziehen kann, wann was
+ * passiert ist – inklusive Spielzeit, die zum Pausenzeitpunkt verblieb.
+ */
+export default function ScoreHistory({
+  history,
+  timerLog,
+  teams,
+}: ScoreHistoryProps) {
+  const rows: Row[] = [
+    ...history.map(
+      (ev): Row => ({ kind: 'event', timestamp: ev.timestamp, data: ev }),
+    ),
+    ...timerLog.map(
+      (te): Row => ({ kind: 'timer', timestamp: te.timestamp, data: te }),
+    ),
+  ].sort((a, b) => b.timestamp - a.timestamp);
+
+  if (rows.length === 0) {
     return (
       <ul className="history-list">
         <li className="history-empty">Noch keine Aktion erfasst.</li>
@@ -30,17 +47,44 @@ export default function ScoreHistory({ history, teams }: ScoreHistoryProps) {
 
   return (
     <ul className="history-list">
-      {events.map((ev) => {
+      {rows.map((row) => {
+        const time = new Date(row.timestamp).toLocaleTimeString('de-DE', {
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit',
+        });
+
+        if (row.kind === 'timer') {
+          const te = row.data;
+          const label =
+            te.kind === 'start'
+              ? 'Timer gestartet'
+              : te.kind === 'pause'
+              ? 'Timer pausiert'
+              : 'Zeit abgelaufen';
+          const Icon =
+            te.kind === 'start' || te.kind === 'expired' ? PlayIcon : PauseIcon;
+          return (
+            <li key={te.id} className={`history-item timer ${te.kind}`}>
+              <span className="hi-time">{time}</span>
+              <span className="hi-main">
+                <span className="hi-player">
+                  <Icon size={12} /> {label}
+                </span>
+                <span className="hi-team">
+                  Restzeit {formatClock(te.remainingSec)}
+                </span>
+              </span>
+            </li>
+          );
+        }
+
+        const ev = row.data;
         const team = teams[ev.teamId];
         const player = team.players.find((p) => p.id === ev.playerId);
         const playerLabel = player
           ? `#${player.number} ${player.name}`
           : 'Unbekannter Spieler';
-        const time = new Date(ev.timestamp).toLocaleTimeString('de-DE', {
-          hour: '2-digit',
-          minute: '2-digit',
-          second: '2-digit',
-        });
         const pt = ev.pointType ? POINT_TYPE_BY_ID[ev.pointType] : null;
         const isEdit = ev.kind === 'edit';
         const delta = typeof ev.delta === 'number' ? ev.delta : 0;

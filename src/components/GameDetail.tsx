@@ -153,7 +153,11 @@ export default function GameDetail({
 
         <section className="detail-history">
           <h3>Verlauf</h3>
-          <ScoreHistory history={game.history} teams={game.teams} />
+          <ScoreHistory
+            history={game.history}
+            timerLog={game.timerLog ?? []}
+            teams={game.teams}
+          />
         </section>
       </div>
     </div>

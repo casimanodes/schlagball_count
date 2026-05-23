@@ -20,9 +20,10 @@ function isValidView(v: unknown): v is AppState['view'] {
 }
 
 /**
- * Migration für Altdaten ohne Team-Farbe: weist jedem Team die Standardfarbe
- * (A=Blau, B=Rot) zu, falls keine vorhanden ist. So bleiben Bestandsspiele
- * nach dem Update weiter benutzbar.
+ * Migration für Altdaten:
+ *   - jedes Team bekommt eine Farbe (Default A=Blau, B=Rot)
+ *   - jedes Spiel bekommt einen leeren timerLog, falls er fehlt
+ * So bleiben Bestandsspiele nach dem Update weiter benutzbar.
  */
 function withTeamColors<T extends Game | CompletedGame | null>(game: T): T {
   if (!game) return game;
@@ -37,7 +38,11 @@ function withTeamColors<T extends Game | CompletedGame | null>(game: T): T {
       color: ensureTeamColor(team.color, DEFAULT_TEAM_COLOR[id]),
     };
   }
-  return { ...game, teams: next } as T;
+  return {
+    ...game,
+    teams: next,
+    timerLog: Array.isArray(game.timerLog) ? game.timerLog : [],
+  } as T;
 }
 
 function loadState(): AppState {

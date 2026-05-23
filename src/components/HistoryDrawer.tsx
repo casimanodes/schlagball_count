@@ -1,5 +1,10 @@
 import { useEffect } from 'react';
-import type { GameEvent, TeamId, TeamState } from '../types';
+import type {
+  GameEvent,
+  TeamId,
+  TeamState,
+  TimerLogEntry,
+} from '../types';
 import ScoreHistory from './ScoreHistory';
 import TeamBreakdown from './TeamBreakdown';
 import { CloseIcon } from './icons';
@@ -7,6 +12,7 @@ import { CloseIcon } from './icons';
 interface HistoryDrawerProps {
   open: boolean;
   history: GameEvent[];
+  timerLog: TimerLogEntry[];
   teams: Record<TeamId, TeamState>;
   onClose: () => void;
 }
@@ -22,9 +28,11 @@ interface HistoryDrawerProps {
 export default function HistoryDrawer({
   open,
   history,
+  timerLog,
   teams,
   onClose,
 }: HistoryDrawerProps) {
+  const total = history.length + timerLog.length;
   useEffect(() => {
     if (!open) return;
     function onKey(e: KeyboardEvent) {
@@ -63,9 +71,13 @@ export default function HistoryDrawer({
 
           <section className="history-section">
             <h3 className="history-section-title">
-              Aktionen ({history.length})
+              Verlauf ({total})
             </h3>
-            <ScoreHistory history={history} teams={teams} />
+            <ScoreHistory
+              history={history}
+              timerLog={timerLog}
+              teams={teams}
+            />
           </section>
         </div>
       </div>

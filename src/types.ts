@@ -236,6 +236,18 @@ export interface TimerState {
   remainingSec: number;
 }
 
+/** Eintrag des Timer-Protokolls (separat von den Punkt-Ereignissen, damit
+ *  Undo nur Punkte/Schläge/Korrekturen betrifft). */
+export type TimerLogKind = 'start' | 'pause' | 'expired';
+
+export interface TimerLogEntry {
+  id: string;
+  kind: TimerLogKind;
+  /** Verbleibende Sekunden zum Zeitpunkt des Ereignisses. */
+  remainingSec: number;
+  timestamp: number;
+}
+
 /** Ein Spiel – laufend oder als Vorlage für ein beendetes Spiel. */
 export interface Game {
   id: string;
@@ -248,6 +260,10 @@ export interface Game {
    *  (d. h. seit dem letzten Schlag wurde noch nicht gefangen). */
   fangAvailable: boolean;
   history: GameEvent[];
+  /** Protokoll des Timers (Start, Pause, Ablauf). Wird im Verlauf
+   *  zusätzlich zu den Punkt-Ereignissen angezeigt; Undo lässt diese
+   *  Einträge unangetastet, weil sie nur informativ sind. */
+  timerLog: TimerLogEntry[];
   timer: TimerState;
   startedAt: number;
   /** True, sobald der Timer abgelaufen ist. Das Spiel wird NICHT automatisch

@@ -25,6 +25,8 @@ import type {
   TeamColorId,
   TeamId,
   TeamState,
+  TimerLogEntry,
+  TimerLogKind,
 } from './types';
 import { ROLE_SWITCH_POINT_TYPE } from './types';
 
@@ -121,6 +123,21 @@ function applyHasHit(
   };
 }
 
+/** Hängt einen Timer-Eintrag ans Spiel an (Start / Pause / Ablauf). */
+function appendTimerLog(
+  game: Game,
+  kind: TimerLogKind,
+  remainingSec: number,
+): TimerLogEntry[] {
+  const entry: TimerLogEntry = {
+    id: makeId(),
+    kind,
+    remainingSec,
+    timestamp: Date.now(),
+  };
+  return [...(game.timerLog ?? []), entry];
+}
+
 /** Verschiebt ein Spiel ins Archiv und wechselt in die Übersicht. */
 function finishGame(state: AppState, game: Game, reason: EndReason): AppState {
   const completed: CompletedGame = {
@@ -161,6 +178,7 @@ export function gameReducer(state: AppState, action: GameAction): AppState {
         lastHitterId: null,
         fangAvailable: false,
         history: [],
+        timerLog: [],
         timer: {
           durationSec,
           running: false,
@@ -463,6 +481,7 @@ export function gameReducer(state: AppState, action: GameAction): AppState {
             running: true,
             endsAt: Date.now() + t.remainingSec * 1000,
           },
+          timerLog: appendTimerLog(state.currentGame, 'start', t.remainingSec),
         },
       };
     }
@@ -481,6 +500,7 @@ export function gameReducer(state: AppState, action: GameAction): AppState {
         currentGame: {
           ...state.currentGame,
           timer: { ...t, running: false, endsAt: null, remainingSec: remaining },
+          timerLog: appendTimerLog(state.currentGame, 'pause', remaining),
         },
       };
     }
@@ -497,13 +517,17 @@ export function gameReducer(state: AppState, action: GameAction): AppState {
         // Timer abgelaufen – Spiel NICHT automatisch beenden. Stattdessen
         // den Timer stoppen und timeExpired markieren, damit der
         // Schiedsrichter Punkte bearbeiten und das Spiel manuell beenden
-        // kann.
+        // kann. Im Timer-Log wird der Ablauf dokumentiert.
+        const alreadyExpired = !!state.currentGame.timeExpired;
         return {
           ...state,
           currentGame: {
             ...state.currentGame,
             timer: { ...t, running: false, endsAt: null, remainingSec: 0 },
             timeExpired: true,
+            timerLog: alreadyExpired
+              ? state.currentGame.timerLog
+              : appendTimerLog(state.currentGame, 'expired', 0),
           },
         };
       }

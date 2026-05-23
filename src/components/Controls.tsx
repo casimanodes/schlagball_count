@@ -11,9 +11,9 @@ interface ControlsProps {
 }
 
 /**
- * Kontrollleiste am unteren Bildschirmrand. Die kompakten Funktionen
- * (Undo, Bearbeiten, Verlauf) erscheinen als reine Icon-Buttons; das
- * Spielende ist als vollwertiger Knopf prominent rechts platziert.
+ * Kontrollleiste am unteren Bildschirmrand. Vier gleich breite Icon-Buttons
+ * (Undo, Bearbeiten, Verlauf, Spiel beenden) auf einer Zeile – flach
+ * gehalten, damit möglichst viel Höhe für die Spielerkarten bleibt.
  */
 export default function Controls({
   canUndo,
@@ -34,7 +34,7 @@ export default function Controls({
         aria-label="Letzte Aktion rückgängig"
         title="Undo"
       >
-        <UndoIcon size={22} />
+        <UndoIcon size={20} />
       </button>
 
       <button
@@ -45,17 +45,17 @@ export default function Controls({
         aria-label={editMode ? 'Bearbeitung beenden' : 'Punkte bearbeiten'}
         title={editMode ? 'Bearbeitung beenden' : 'Punkte bearbeiten'}
       >
-        <EditIcon size={22} />
+        <EditIcon size={20} />
       </button>
 
       <button
         type="button"
-        className="icon-btn history"
+        className="icon-btn"
         onClick={onOpenHistory}
-        aria-label={`Verlauf öffnen (${historyCount} Aktionen)`}
+        aria-label={`Verlauf öffnen (${historyCount} Einträge)`}
         title="Verlauf"
       >
-        <HistoryIcon size={22} />
+        <HistoryIcon size={20} />
         {historyCount > 0 && (
           <span className="icon-badge">{historyCount}</span>
         )}
@@ -63,11 +63,12 @@ export default function Controls({
 
       <button
         type="button"
-        className="control-btn end"
+        className="icon-btn end"
         onClick={onEndGame}
+        aria-label="Spiel beenden"
+        title="Spiel beenden"
       >
         <StopIcon size={18} />
-        <span>Spiel beenden</span>
       </button>
     </footer>
   );
