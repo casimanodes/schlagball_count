@@ -72,6 +72,14 @@ export default function TeamBreakdown({ teams }: TeamBreakdownProps) {
               <span className="br-value">{totalsB[pt.id]}</span>
             </div>
           ))}
+          {((teams.A.bonusPoints ?? 0) > 0 ||
+            (teams.B.bonusPoints ?? 0) > 0) && (
+            <div className="breakdown-row bonus">
+              <span className="br-label">Team-Bonus</span>
+              <span className="br-value">{teams.A.bonusPoints ?? 0}</span>
+              <span className="br-value">{teams.B.bonusPoints ?? 0}</span>
+            </div>
+          )}
         </div>
       )}
     </section>

@@ -22,6 +22,7 @@ function isValidView(v: unknown): v is AppState['view'] {
 /**
  * Migration für Altdaten:
  *   - jedes Team bekommt eine Farbe (Default A=Blau, B=Rot)
+ *   - jedes Team bekommt bonusPoints=0, falls sie fehlen
  *   - jedes Spiel bekommt einen leeren timerLog, falls er fehlt
  * So bleiben Bestandsspiele nach dem Update weiter benutzbar.
  */
@@ -36,6 +37,10 @@ function withTeamColors<T extends Game | CompletedGame | null>(game: T): T {
     next[id] = {
       ...team,
       color: ensureTeamColor(team.color, DEFAULT_TEAM_COLOR[id]),
+      bonusPoints:
+        typeof team.bonusPoints === 'number' && team.bonusPoints >= 0
+          ? team.bonusPoints
+          : 0,
     };
   }
   return {

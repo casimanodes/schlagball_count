@@ -27,6 +27,10 @@ const TEAM_IDS: TeamId[] = ['A', 'B'];
 export default function GameScreen({ game, dispatch }: GameScreenProps) {
   const [toastMsg, setToastMsg] = useState<string | null>(null);
   const [editMode, setEditMode] = useState(false);
+  /** Steuert das Einblenden des grünen Bearbeitungs-Banners. Der Banner
+   *  verschwindet nach wenigen Sekunden automatisch, der Modus bleibt
+   *  aber aktiv, bis der Schiedsrichter ihn beendet. */
+  const [editHintVisible, setEditHintVisible] = useState(false);
   const [confirmEndOpen, setConfirmEndOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
   const prevHistoryLen = useRef(game.history.length);
@@ -78,6 +82,17 @@ export default function GameScreen({ game, dispatch }: GameScreenProps) {
     return () => clearTimeout(timer);
   }, [toastMsg]);
 
+  // Bearbeitungs-Banner nach Aktivierung kurz zeigen und dann ausblenden.
+  useEffect(() => {
+    if (!editMode) {
+      setEditHintVisible(false);
+      return;
+    }
+    setEditHintVisible(true);
+    const timer = setTimeout(() => setEditHintVisible(false), 4000);
+    return () => clearTimeout(timer);
+  }, [editMode]);
+
   function handleEndGame() {
     setConfirmEndOpen(true);
   }
@@ -112,7 +127,7 @@ export default function GameScreen({ game, dispatch }: GameScreenProps) {
         </div>
       )}
 
-      {editMode && (
+      {editMode && editHintVisible && (
         <div className="edit-bar" role="status">
           <span className="edit-bar-title">Bearbeitungs-Modus</span>
           <span className="edit-bar-sub">
@@ -150,6 +165,9 @@ export default function GameScreen({ game, dispatch }: GameScreenProps) {
                   pointType,
                   delta,
                 })
+              }
+              onAdjustTeam={(delta) =>
+                dispatch({ type: 'ADJUST_TEAM_POINTS', teamId: id, delta })
               }
             />
           ))}

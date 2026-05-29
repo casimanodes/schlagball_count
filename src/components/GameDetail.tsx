@@ -115,6 +115,7 @@ export default function GameDetail({
         {TEAM_IDS.map((id) => {
           const team = game.teams[id];
           const cfg = TEAM_COLOR_BY_ID[team.color];
+          const bonus = team.bonusPoints ?? 0;
           return (
             <div key={id} className="detail-team-stats">
               <h3 style={{ color: cfg.strong }}>
@@ -124,6 +125,11 @@ export default function GameDetail({
                   aria-hidden="true"
                 />
                 {team.name}
+                {bonus > 0 && (
+                  <span className="dts-bonus" title="Team-Bonuspunkte">
+                    + Bonus {bonus}
+                  </span>
+                )}
               </h3>
               <ul className="detail-players">
                 {team.players.map((p) => (

@@ -19,14 +19,17 @@ interface TeamPanelProps {
   onHit: (playerId: string) => void;
   onScore: (playerId: string, pointType: PointTypeId) => void;
   onAdjust: (playerId: string, pointType: PointTypeId, delta: number) => void;
+  /** Team-Bonuspunkte (ohne Spielerzuordnung) im Edit-Modus ändern. */
+  onAdjustTeam: (delta: number) => void;
 }
 
 /**
  * Panel einer Mannschaft. Banner mit der TEAM-FARBE (konstant) und einem
  * separaten Role-Badge (SVG + Wort), das je nach Spielphase wechselt.
- * Die aktuelle Punktewert-Anzeige steckt in den Spielerkarten selbst –
- * die ausklappbare Team-Punktarten-Liste wurde in eine gemeinsame
- * Komponente ausgelagert, die über dem Verlauf erscheint.
+ * Bonuspunkte (keinem Spieler zugeordnet) werden im Banner als kleines
+ * Badge angezeigt, sobald sie > 0 sind. Im Bearbeitungs-Modus erscheint
+ * zusätzlich eine eigene Zeile mit + / − Tasten, um diese frei
+ * vergebbaren Team-Punkte zu steuern.
  */
 export default function TeamPanel({
   team,
@@ -39,9 +42,11 @@ export default function TeamPanel({
   onHit,
   onScore,
   onAdjust,
+  onAdjustTeam,
 }: TeamPanelProps) {
   const isAttack = role === 'attack';
   const cfg = TEAM_COLOR_BY_ID[team.color];
+  const bonus = team.bonusPoints ?? 0;
 
   return (
     <section className="panel">
@@ -50,13 +55,49 @@ export default function TeamPanel({
         style={{ background: cfg.bg, color: cfg.fg }}
       >
         <span className="panel-team-name">{team.name}</span>
-        <span className={`role-badge ${isAttack ? 'attack' : 'defense'}`}>
-          {isAttack ? <AttackIcon size={14} /> : <DefenseIcon size={14} />}
-          <span>{isAttack ? 'ANGRIFF' : 'VERTEIDIGUNG'}</span>
-        </span>
+        <div className="panel-banner-right">
+          {bonus > 0 && !editMode && (
+            <span
+              className="bonus-badge"
+              title="Freie Team-Punkte (keinem Spieler zugeordnet)"
+            >
+              +{bonus}
+            </span>
+          )}
+          <span className={`role-badge ${isAttack ? 'attack' : 'defense'}`}>
+            {isAttack ? <AttackIcon size={14} /> : <DefenseIcon size={14} />}
+            <span>{isAttack ? 'ANGRIFF' : 'VERTEIDIGUNG'}</span>
+          </span>
+        </div>
       </div>
 
       <div className="panel-body">
+        {editMode && (
+          <div className="team-bonus-row">
+            <span className="team-bonus-label">Team-Punkte (frei)</span>
+            <div className="team-bonus-controls">
+              <button
+                type="button"
+                className="edit-btn minus"
+                onClick={() => onAdjustTeam(-1)}
+                disabled={bonus === 0}
+                aria-label="Team-Punkte minus"
+              >
+                &#8722;
+              </button>
+              <span className="edit-count">{bonus}</span>
+              <button
+                type="button"
+                className="edit-btn plus"
+                onClick={() => onAdjustTeam(+1)}
+                aria-label="Team-Punkte plus"
+              >
+                +
+              </button>
+            </div>
+          </div>
+        )}
+
         {team.players.length === 0 ? (
           <p className="panel-empty">Keine Spieler hinterlegt.</p>
         ) : (

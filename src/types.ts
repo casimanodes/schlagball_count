@@ -201,11 +201,19 @@ export interface TeamState {
   name: string;
   color: TeamColorId;
   players: Player[];
+  /** Zusätzliche Team-Punkte, die KEINEM Spieler zugeordnet sind (manuell
+   *  vom Schiedsrichter im Bearbeitungs-Modus vergeben). Fließen in die
+   *  Gesamtpunktzahl ein. Standardwert: 0. */
+  bonusPoints?: number;
 }
 
-/** Art eines Ereignisses: ein Punkt, ein Schlag ("geschlagen") oder eine
- *  nachträgliche Bearbeitung (manuelle Korrektur eines Punktewerts). */
-export type GameEventKind = 'point' | 'hit' | 'edit';
+/** Art eines Ereignisses:
+ *   - 'point'     : regulärer Punkt
+ *   - 'hit'       : Schlag ("geschlagen")
+ *   - 'edit'      : nachträgliche Korrektur an einem Spieler-Punkt
+ *   - 'team-edit' : nachträgliche Korrektur an der Team-Gesamtpunktzahl
+ *                   (Bonuspunkte ohne Spielerzuordnung) */
+export type GameEventKind = 'point' | 'hit' | 'edit' | 'team-edit';
 
 /** Ein einzelnes Spielereignis. Enthält zusätzlich einen Snapshot des
  *  Schlag-Status VOR dem Ereignis, damit Undo zuverlässig funktioniert. */
@@ -303,9 +311,10 @@ export function playerTotal(player: Player): number {
   return ALL_POINT_TYPES.reduce((sum, pt) => sum + player.points[pt.id], 0);
 }
 
-/** Gesamtpunktzahl eines Teams = Summe aller Spielerpunkte. */
+/** Gesamtpunktzahl eines Teams = Summe aller Spielerpunkte + Bonuspunkte. */
 export function teamTotal(team: TeamState): number {
-  return team.players.reduce((sum, p) => sum + playerTotal(p), 0);
+  const players = team.players.reduce((sum, p) => sum + playerTotal(p), 0);
+  return players + (team.bonusPoints ?? 0);
 }
 
 /** Team-Punkte je Punktart, aufsummiert über alle Spieler. */

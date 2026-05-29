@@ -81,14 +81,32 @@ export default function ScoreHistory({
 
         const ev = row.data;
         const team = teams[ev.teamId];
+        const delta = typeof ev.delta === 'number' ? ev.delta : 0;
+        const deltaLabel = delta > 0 ? `+${delta}` : `${delta}`;
+
+        // Sonderfall: Team-Korrektur (keinem Spieler zugeordnet).
+        if (ev.kind === 'team-edit') {
+          return (
+            <li key={ev.id} className="history-item edit team">
+              <span className="hi-time">{time}</span>
+              <span className="hi-main">
+                <span className="hi-player">Team-Punkte</span>
+                <span className="hi-team">{team.name}</span>
+              </span>
+              <span className="hi-edit">
+                <span className="hi-edit-tag">Korrektur</span>
+                <span className="hi-edit-detail">Team {deltaLabel}</span>
+              </span>
+            </li>
+          );
+        }
+
         const player = team.players.find((p) => p.id === ev.playerId);
         const playerLabel = player
           ? `#${player.number} ${player.name}`
           : 'Unbekannter Spieler';
         const pt = ev.pointType ? POINT_TYPE_BY_ID[ev.pointType] : null;
         const isEdit = ev.kind === 'edit';
-        const delta = typeof ev.delta === 'number' ? ev.delta : 0;
-        const deltaLabel = delta > 0 ? `+${delta}` : `${delta}`;
         const rowClass = isEdit
           ? `history-item edit ${pt ? pt.role : ''}`
           : `history-item ${pt ? pt.role : 'hit'}`;

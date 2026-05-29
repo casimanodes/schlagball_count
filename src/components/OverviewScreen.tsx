@@ -40,20 +40,29 @@ function downloadGames(games: CompletedGame[]): void {
       const team = game.teams[ev.teamId];
       const player = team.players.find((p) => p.id === ev.playerId);
       let aktion: string;
-      if (ev.kind === 'edit' && ev.pointType) {
+      let spieler: string;
+      if (ev.kind === 'team-edit') {
+        const delta = typeof ev.delta === 'number' ? ev.delta : 0;
+        const sign = delta > 0 ? '+' : '';
+        aktion = `Korrektur Team-Punkte (${sign}${delta})`;
+        spieler = '(Team)';
+      } else if (ev.kind === 'edit' && ev.pointType) {
         const delta = typeof ev.delta === 'number' ? ev.delta : 0;
         const sign = delta > 0 ? '+' : '';
         aktion = `Korrektur ${POINT_TYPE_BY_ID[ev.pointType].label} (${sign}${delta})`;
+        spieler = player ? `#${player.number} ${player.name}` : 'Unbekannt';
       } else if (ev.pointType) {
         aktion = POINT_TYPE_BY_ID[ev.pointType].label;
+        spieler = player ? `#${player.number} ${player.name}` : 'Unbekannt';
       } else {
         aktion = 'Geschlagen';
+        spieler = player ? `#${player.number} ${player.name}` : 'Unbekannt';
       }
       rows.push({
         zeit: new Date(ev.timestamp).toLocaleTimeString('de-DE'),
         timestamp: ev.timestamp,
         team: team.name,
-        spieler: player ? `#${player.number} ${player.name}` : 'Unbekannt',
+        spieler,
         aktion,
       });
     });

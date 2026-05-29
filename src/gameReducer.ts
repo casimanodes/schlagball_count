@@ -51,6 +51,7 @@ export type GameAction =
       pointType: PointTypeId;
       delta: number;
     }
+  | { type: 'ADJUST_TEAM_POINTS'; teamId: TeamId; delta: number }
   | { type: 'UNDO' }
   | { type: 'END_GAME'; reason: EndReason }
   | { type: 'TIMER_START' }
@@ -167,11 +168,13 @@ export function gameReducer(state: AppState, action: GameAction): AppState {
             name: action.teamAName.trim() || 'Team 1',
             color: action.teamAColor,
             players: makePlayers(action.playersA),
+            bonusPoints: 0,
           },
           B: {
             name: action.teamBName.trim() || 'Team 2',
             color: action.teamBColor,
             players: makePlayers(action.playersB),
+            bonusPoints: 0,
           },
         },
         attackingTeam: action.attackingTeam,
@@ -305,13 +308,14 @@ export function gameReducer(state: AppState, action: GameAction): AppState {
         if (lastHitterId === playerId) lastHitterId = null;
       } else if (pointType === 'weitschlagpunkt') {
         // Weitschlag erzielt: kein zweiter Weitschlag für denselben Schlag,
-        // aber der Schlag bleibt offen – ein Laufpunkt ist weiter möglich.
+        // ABER der Fangpunkt bleibt fuer die Verteidigung moeglich und
+        // der Schlag bleibt offen (ein Laufpunkt ist weiter moeglich).
         lastHitterId = null;
-        fangAvailable = false;
       } else if (pointType === 'fangpunkt') {
-        // Der Schlag wurde gefangen – Fang-Chance verbraucht.
+        // Fangpunkt verbraucht – kein zweiter Fang fuer denselben Schlag.
+        // Der Weitschlagpunkt bleibt fuer den letzten Schlaeger moeglich
+        // und der Schlag bleibt offen.
         fangAvailable = false;
-        lastHitterId = null;
       } else if (pointType === 'abwurfpunkt') {
         // Rollenwechsel: das punktende Team greift an, neue Angriffsphase –
         // alle Schlag-Status werden zurückgesetzt.
@@ -387,6 +391,46 @@ export function gameReducer(state: AppState, action: GameAction): AppState {
       };
     }
 
+    // -- Team-Gesamtpunkte ohne Spielerzuordnung bearbeiten ---------------
+    case 'ADJUST_TEAM_POINTS': {
+      if (!state.currentGame) return state;
+      const game = state.currentGame;
+      const { teamId, delta } = action;
+      if (delta !== 1 && delta !== -1) return state;
+      const team = game.teams[teamId];
+      const current = team.bonusPoints ?? 0;
+      const next = current + delta;
+      // Bonuspunkte nie negativ.
+      if (next < 0) return state;
+
+      const event: GameEvent = {
+        id: makeId(),
+        kind: 'team-edit',
+        teamId,
+        playerId: '',
+        pointType: null,
+        delta,
+        timestamp: Date.now(),
+        causedRoleSwitch: false,
+        ...captureHitState(game),
+      };
+
+      return {
+        ...state,
+        currentGame: {
+          ...game,
+          teams: {
+            ...game.teams,
+            [teamId]: {
+              ...team,
+              bonusPoints: next,
+            },
+          },
+          history: [...game.history, event],
+        },
+      };
+    }
+
     // -- Letzte Aktion rückgängig machen -----------------------------------
     case 'UNDO': {
       if (!state.currentGame || state.currentGame.history.length === 0) {
@@ -441,6 +485,21 @@ export function gameReducer(state: AppState, action: GameAction): AppState {
                   }
                 : p,
             ),
+          },
+        };
+      } else if (
+        last.kind === 'team-edit' &&
+        typeof last.delta === 'number'
+      ) {
+        // Team-Bonus-Korrektur umkehren.
+        const delta = last.delta;
+        const team = game.teams[last.teamId];
+        const current = team.bonusPoints ?? 0;
+        teams = {
+          ...game.teams,
+          [last.teamId]: {
+            ...team,
+            bonusPoints: Math.max(0, current - delta),
           },
         };
       }
