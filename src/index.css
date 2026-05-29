@@ -45,7 +45,7 @@ body {
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica,
     Arial, sans-serif;
-  background: #15171e;
+  background: var(--bg);
   color: var(--text);
   -webkit-tap-highlight-color: transparent;
   -webkit-font-smoothing: antialiased;
@@ -54,6 +54,14 @@ body {
 
 #root {
   height: 100%;
+}
+
+/* Auf groesseren Bildschirmen den Bereich um die App leicht abdunkeln,
+   damit die App-Box visuell klar abgesetzt erscheint. */
+@media (min-width: 720px) {
+  body {
+    background: #c5cad4;
+  }
 }
 
 button {
@@ -80,19 +88,35 @@ svg {
   vertical-align: middle;
 }
 
-/* --- App-Hülle: zentriert, Smartphone-Breite ------------------------------ */
+/* --- App-Huelle: responsiv ------------------------------------------------
+   Mobile-First: volle Bildschirmbreite. Auf Tablet/Desktop wird sie auf eine
+   sinnvolle Maximalbreite begrenzt und zentriert. */
 .app {
   position: relative;
   display: flex;
   flex-direction: column;
   width: 100%;
-  max-width: 480px;
+  max-width: 100%;
   height: 100vh;
   height: 100dvh;
   margin: 0 auto;
   background: var(--bg);
   overflow: hidden;
-  box-shadow: 0 0 60px rgba(0, 0, 0, 0.55);
+}
+
+/* Tablet (Portrait & Landscape) und Desktop: zentrierte App-Box mit
+   sichtbarem Schatten und etwas mehr Atemraum. */
+@media (min-width: 720px) {
+  .app {
+    max-width: 1100px;
+    box-shadow: 0 0 60px rgba(15, 23, 42, 0.25);
+  }
+}
+
+@media (min-width: 1400px) {
+  .app {
+    max-width: 1280px;
+  }
 }
 
 /* --- Warnbanner: Spielstand konnte nicht gespeichert werden -------------- */
@@ -2098,6 +2122,255 @@ svg {
 
 .pe-add-btn:disabled {
   opacity: 0.35;
+}
+
+/* ===========================================================================
+   Responsives Layout fuer Tablet & Desktop (ab 720 px)
+   ---------------------------------------------------------------------------
+   Idee:
+   - Die Team-Panels stehen nebeneinander (Grid: 1fr 1fr).
+   - Schriften, Tap-Targets und Padding sind etwas grosszuegiger als auf dem
+     Smartphone, damit die App auch auf iPad / Desktop angenehm wirkt.
+   - Setup-, Uebersichts- und Detail-Bildschirm haben innen eine
+     Maximalbreite, damit Eingaben und Texte gut lesbar bleiben.
+   =========================================================================== */
+@media (min-width: 720px) {
+  /* ---------- Scoreboard mit integriertem Timer ---------- */
+  .sb-team {
+    padding: 8px 12px 10px;
+    gap: 2px;
+  }
+
+  .sb-color-dot {
+    width: 22px;
+    height: 5px;
+  }
+
+  .sb-name {
+    font-size: 14px;
+  }
+
+  .sb-score {
+    font-size: 36px;
+  }
+
+  .sb-timer {
+    min-width: 150px;
+    padding: 6px 24px 8px;
+  }
+
+  .sb-timer-label {
+    font-size: 10px;
+  }
+
+  .sb-timer-display {
+    font-size: 30px;
+  }
+
+  .sb-timer-hint {
+    font-size: 11px;
+  }
+
+  /* ---------- Banner / Hinweise ---------- */
+  .time-up-bar,
+  .edit-bar {
+    padding: 8px 18px;
+  }
+
+  .time-up-title,
+  .edit-bar-title {
+    font-size: 14px;
+  }
+
+  .time-up-sub,
+  .edit-bar-sub {
+    font-size: 12px;
+  }
+
+  /* ---------- Game-Body: Panels nebeneinander ---------- */
+  .game-body {
+    padding: 12px 14px 18px;
+    gap: 12px;
+  }
+
+  .panels {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    align-items: start;
+  }
+
+  /* ---------- Team-Panel ---------- */
+  .panel-banner {
+    padding: 8px 16px;
+  }
+
+  .panel-team-name {
+    font-size: 17px;
+  }
+
+  .role-badge {
+    font-size: 11px;
+    padding: 4px 11px;
+  }
+
+  .panel-body {
+    padding: 8px 12px 12px;
+  }
+
+  .player-list {
+    gap: 6px;
+  }
+
+  /* ---------- Spielerkarte ---------- */
+  .player-card-head {
+    padding: 4px 10px;
+    gap: 8px;
+    min-height: 26px;
+  }
+
+  .player-number {
+    min-width: 26px;
+    height: 19px;
+    font-size: 11px;
+  }
+
+  .player-name {
+    font-size: 14px;
+  }
+
+  .player-total {
+    font-size: 14px;
+  }
+
+  .next-badge {
+    width: 18px;
+    height: 18px;
+  }
+
+  .player-half {
+    min-height: 38px;
+    gap: 8px;
+  }
+
+  .half-value {
+    font-size: 15px;
+  }
+
+  /* ---------- Bearbeitungs-Modus ---------- */
+  .edit-row {
+    padding: 8px 14px;
+  }
+
+  .edit-label {
+    font-size: 14px;
+  }
+
+  .edit-btn {
+    width: 42px;
+    height: 42px;
+    font-size: 21px;
+  }
+
+  .edit-count {
+    font-size: 18px;
+    min-width: 28px;
+  }
+
+  .team-bonus-row {
+    padding: 8px 12px;
+    margin-bottom: 8px;
+  }
+
+  .team-bonus-label {
+    font-size: 13px;
+  }
+
+  /* ---------- Kontrollleiste ---------- */
+  .controls {
+    padding: 8px 14px;
+    padding-bottom: calc(8px + env(safe-area-inset-bottom));
+    gap: 10px;
+  }
+
+  .icon-btn {
+    height: 46px;
+    border-radius: 12px;
+  }
+
+  /* ---------- Setup / Overview / Detail innen begrenzen ---------- */
+  .setup {
+    max-width: 640px;
+    width: 100%;
+    margin: 0 auto;
+    padding: 36px 24px 28px;
+  }
+
+  .overview-header,
+  .overview-list,
+  .overview-actions {
+    max-width: 760px;
+    margin-left: auto;
+    margin-right: auto;
+    width: 100%;
+  }
+
+  .detail-body {
+    max-width: 760px;
+    margin-left: auto;
+    margin-right: auto;
+    width: 100%;
+  }
+
+  /* ---------- Verlauf-Drawer auf Tablet ---------- */
+  .drawer {
+    max-width: 720px;
+    margin: 0 auto;
+    border-radius: 22px 22px 0 0;
+  }
+
+  /* ---------- Toast etwas tiefer, weil Scoreboard hoeher ---------- */
+  .toast {
+    top: 92px;
+    font-size: 14px;
+    padding: 10px 18px;
+  }
+}
+
+/* Noch etwas mehr Platz ab Tablet-Landscape / Desktop. */
+@media (min-width: 1024px) {
+  .panels {
+    gap: 16px;
+  }
+
+  .game-body {
+    padding: 14px 18px 22px;
+    gap: 14px;
+  }
+
+  .player-half {
+    min-height: 42px;
+  }
+
+  .sb-score {
+    font-size: 40px;
+  }
+
+  .sb-timer-display {
+    font-size: 32px;
+  }
+
+  .panel-team-name {
+    font-size: 18px;
+  }
+
+  .player-name {
+    font-size: 15px;
+  }
+
+  .half-value {
+    font-size: 16px;
+  }
 }
 
 /* ===========================================================================
